@@ -11,6 +11,9 @@
   <br><label>
     ชื่อเพลง:
     <textarea name="songname"></textarea>
+      <br><label>
+    ศิลปิน:
+    <textarea name="artist"></textarea>
   </label>  
   <br><label>
     เนื้อเพลง:
