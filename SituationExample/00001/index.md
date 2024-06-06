@@ -16,4 +16,4 @@
   <br><button type="submit">ส่ง</button>
 </form>
 ---
-Made with :heart: by Chayaphol Roibang for :school: Kongleechongsun School
+Made with ❤️ by Chayaphol Roibang for 🏫 Kongleechongsun School
