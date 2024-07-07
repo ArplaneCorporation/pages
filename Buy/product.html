@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เว็บไซต์ซื้อสินค้า</title>
+    <link href="https://fonts.googleapis.com/css2?family=Itim&display=swap" rel="stylesheet">
     <style>
         /* CSS เพื่อตกแต่งการแสดงผล */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Itim', cursive;
             margin: 20px;
         }
         .product {
@@ -55,7 +56,7 @@
             })
             .catch(error => {
                 const productContainer = document.getElementById('productContainer');
-                productContainer.innerHTML('<p>เกิดข้อผิดพลาดในการโหลดข้อมูล:', error, '</p>);
+                productContainer.innerHTML = `<p>เกิดข้อผิดพลาดในการโหลดข้อมูล: ${error}</p>`;
             });
 
         function displayProduct(product) {
@@ -73,5 +74,4 @@
         }
     </script>
 </body>
-  </html>
-  
+</html>
