@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เว็บไซต์ซื้อสินค้า</title>
+    <style>
+        /* CSS เพื่อตกแต่งการแสดงผล */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .product {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .product img {
+            max-width: 100px;
+            height: auto;
+            float: left;
+            margin-right: 10px;
+        }
+        .product h2 {
+            margin-top: 0;
+        }
+        .product p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>เว็บไซต์ซื้อสินค้า</h1>
+
+    <div id="productContainer">
+        <!-- ที่นี่จะแสดงสินค้า -->
+    </div>
+
+    <script>
+        // JavaScript เพื่อโหลดข้อมูล JSON และแสดงผลสินค้า
+        const urlParams = new URLSearchParams(window.location.search);
+        const infoParam = urlParams.get('info');
+
+        fetch('allprod.json')
+            .then(response => response.json())
+            .then(data => {
+                const product = data.find(item => item.id === infoParam);
+                if (product) {
+                    displayProduct(product);
+                } else {
+                    // หากไม่พบสินค้า
+                    const productContainer = document.getElementById('productContainer');
+                    productContainer.innerHTML = '<p>ไม่พบสินค้าที่ค้นหา</p>';
+                }
+            })
+            .catch(error => {
+                console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', error);
+            });
+
+        function displayProduct(product) {
+            const productContainer = document.getElementById('productContainer');
+            const productHTML = `
+                <div class="product">
+                    <img src="${product.image}" alt="${product.name}">
+                    <h2>${product.name}</h2>
+                    <p>ราคา: ${product.price} บาท</p>
+                    <p>รายละเอียด: ${product.description}</p>
+                    <a href="https://ezdn.app/chayapholroibang1" target="_blank">ซื้อสินค้า</a>
+                </div>
+            `;
+            productContainer.innerHTML = productHTML;
+        }
+    </script>
+</body>
+  </html>
+  
