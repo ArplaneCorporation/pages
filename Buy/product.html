@@ -1,40 +1,62 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เว็บไซต์ซื้อสินค้า</title>
+    <title>รายละเอียดสินค้า</title>
     <link href="https://fonts.googleapis.com/css2?family=Itim&display=swap" rel="stylesheet">
     <style>
         /* CSS เพื่อตกแต่งการแสดงผล */
         body {
             font-family: 'Itim', cursive;
             margin: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa; /* เปลี่ยนสีพื้นหลังตามที่ต้องการ */
         }
         .product {
             border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
+            padding: 20px;
+            width: 50%;
+            max-width: 600px;
+            text-align: center;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         .product img {
-            max-width: 100px;
+            max-width: 100%;
             height: auto;
-            float: left;
-            margin-right: 10px;
+            margin-bottom: 20px;
         }
         .product h2 {
             margin-top: 0;
+            font-size: 1.5em;
         }
         .product p {
-            margin: 0;
+            margin: 10px 0;
+        }
+        .product a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 12px 24px; /* เพิ่ม padding เพื่อให้ปุ่มมีขนาดใหญ่ขึ้น */
+            text-decoration: none;
+            color: #fff;
+            background-color: #ff5722; /* เปลี่ยนสีพื้นหลังเป็นสีเทียบ Shopee */
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: none;
+        }
+        .product a:hover {
+            background-color: #f4511e; /* เปลี่ยนสีพื้นหลังเมื่อชี้เม้าส์ hover */
         }
     </style>
 </head>
 <body>
-    <h1>เว็บไซต์ซื้อสินค้า</h1>
-
-    <div id="productContainer">
-        <!-- ที่นี่จะแสดงสินค้า -->
+    <div class="product" id="productDetail">
+        <!-- ที่นี่จะแสดงรายละเอียดสินค้า -->
     </div>
 
     <script>
@@ -50,28 +72,26 @@
                     displayProduct(product);
                 } else {
                     // หากไม่พบสินค้า
-                    const productContainer = document.getElementById('productContainer');
-                    productContainer.innerHTML = '<p>ไม่พบสินค้าที่ค้นหา</p>';
+                    const productDetail = document.getElementById('productDetail');
+                    productDetail.innerHTML = '<p>ไม่พบสินค้าที่ค้นหา</p>';
                 }
             })
             .catch(error => {
-                const productContainer = document.getElementById('productContainer');
-                productContainer.innerHTML = `<p>เกิดข้อผิดพลาดในการโหลดข้อมูล: ${error}</p>`;
+                const productDetail = document.getElementById('productDetail');
+                productDetail.innerHTML = `<p>เกิดข้อผิดพลาดในการโหลดข้อมูล: ${error}</p>`;
             });
 
         function displayProduct(product) {
-            const productContainer = document.getElementById('productContainer');
+            const productDetail = document.getElementById('productDetail');
             const productHTML = `
-                <div class="product">
-                    <img src="${product.image}" alt="${product.name}">
-                    <h2>${product.name}</h2>
-                    <p>ราคา: ${product.price} บาท</p>
-                    <p>รายละเอียด: ${product.description}</p>
-                    <a href="https://ezdn.app/chayapholroibang1" target="_blank">ซื้อสินค้า</a>
-                </div>
+                <img src="${product.image}" alt="${product.name}">
+                <h2>${product.name}</h2>
+                <p>ราคา: ${product.price} บาท</p>
+                <p>รายละเอียด: ${product.description}</p>
+                <a href="https://ezdn.app/chayapholroibang1" target="_blank">ซื้อสินค้า</a>
             `;
-            productContainer.innerHTML = productHTML;
+            productDetail.innerHTML = productHTML;
         }
     </script>
 </body>
-</html>
+    </html>
