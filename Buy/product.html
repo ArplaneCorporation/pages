@@ -55,7 +55,7 @@
             })
             .catch(error => {
                 const productContainer = document.getElementById('productContainer');
-                productContainer.innerHTML('เกิดข้อผิดพลาดในการโหลดข้อมูล:', error);
+                productContainer.innerHTML('<p>เกิดข้อผิดพลาดในการโหลดข้อมูล:', error, '</p>);
             });
 
         function displayProduct(product) {
