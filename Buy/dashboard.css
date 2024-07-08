@@ -22,10 +22,6 @@ header button {
     font-size: 1em;
     cursor: pointer;
     margin-left: 10px;
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -36,7 +32,11 @@ header button:hover {
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
 }
 
-header button:active {
+header button:last-child {
+    margin-left: 20px;
+}
+
+header button:last-child:hover {
     background-color: #e64a19;
     border-color: #e64a19;
 }

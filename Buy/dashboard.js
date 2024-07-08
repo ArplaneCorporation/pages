@@ -89,10 +89,12 @@ function saveProduct() {
         .then(response => response.json())
         .then(products => {
             if (id) {
-                const productIndex = products.findIndex(p => p.id == id);
-                products[productIndex] = { id: parseInt(id), name, price, description, image };
+                const index = products.findIndex(p => p.id == id);
+                if (index !== -1) {
+                    products[index] = { id, name, price, description, image };
+                }
             } else {
-                const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                const newId = products.length > 0 ? products[products.length - 1].id + 1 : 1;
                 products.push({ id: newId, name, price, description, image });
             }
 
@@ -102,17 +104,21 @@ function saveProduct() {
 }
 
 function saveProducts(products) {
-    fetch('allprod.json', {
+    fetch('saveProducts.php', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
         },
-        body: JSON.stringify(products)
+        body: JSON.stringify(products),
     })
-    .then(response => response.json())
     .then(() => {
         loadProducts();
         hideProductForm();
     })
     .catch(error => console.error('Error saving the products:', error));
+}
+
+function viewSalesPage() {
+    // Replace with your sales page URL
+    window.location.href = 'index.html';
 }
