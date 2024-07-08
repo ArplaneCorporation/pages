@@ -60,6 +60,7 @@
     <button onclick="addProduct()">เพิ่มสินค้า</button>
 
     <script>
+        // Fetch and display existing products on page load
         document.addEventListener('DOMContentLoaded', function() {
             fetchProducts();
         });
@@ -71,90 +72,31 @@
                     const productContainer = document.getElementById('productContainer');
                     productContainer.innerHTML = ''; // Clear previous products
                     data.forEach(product => {
-                        const productDiv = document.createElement('div');
-                        productDiv.classList.add('product');
-
-                        const innerDiv = document.createElement('div');
-                        innerDiv.classList.add('product-item');
-
-                        const productImage = document.createElement('img');
-                        productImage.src = product.image;
-                        productImage.alt = product.name;
-                        productImage.style.maxWidth = '100px';
-                        productImage.style.height = 'auto';
-                        productImage.style.marginRight = '20px';
-
-                        innerDiv.appendChild(productImage);
-
-                        const detailsDiv = document.createElement('div');
-
-                        const productName = document.createElement('h2');
-                        productName.textContent = product.name;
-
-                        const productPrice = document.createElement('p');
-                        productPrice.textContent = `ราคา: ${product.price} บาท`;
-
-                        const productDescription = document.createElement('p');
-                        productDescription.textContent = `รายละเอียด: ${product.description}`;
-
-                        detailsDiv.appendChild(productName);
-                        detailsDiv.appendChild(productPrice);
-                        detailsDiv.appendChild(productDescription);
-
-                        innerDiv.appendChild(detailsDiv);
-
-                        const actionsDiv = document.createElement('div');
-                        actionsDiv.classList.add('product-actions');
-
-                        const editButton = document.createElement('button');
-                        editButton.textContent = 'แก้ไข';
-                        editButton.onclick = function() {
-                            editProduct(product.id);
-                        };
-
-                        const deleteButton = document.createElement('button');
-                        deleteButton.textContent = 'ลบ';
-                        deleteButton.onclick = function() {
-                            deleteProduct(product.id);
-                        };
-
-                        actionsDiv.appendChild(editButton);
-                        actionsDiv.appendChild(deleteButton);
-
-                        productDiv.appendChild(innerDiv);
-                        productDiv.appendChild(actionsDiv);
-
-                        productContainer.appendChild(productDiv);
+                        const productHTML = `
+                            <div class="product">
+                                <div>
+                                    <img src="${product.image}" alt="${product.name}">
+                                    <div>
+                                        <h2>${product.name}</h2>
+                                        <p>ราคา: ${product.price} บาท</p>
+                                        <p>รายละเอียด: ${product.description}</p>
+                                    </div>
+                                </div>
+                                <div class="product-actions">
+                                    <button onclick="editProduct('${product.id}')">แก้ไข</button>
+                                    <button onclick="deleteProduct('${product.id}')">ลบ</button>
+                                </div>
+                            </div>
+                        `;
+                        productContainer.innerHTML += productHTML;
                     });
                 });
         }
 
-function addProduct() {
-    const productName = prompt('กรอกชื่อสินค้า:');
-    const productPrice = prompt('กรอกราคาสินค้า (บาท):');
-    const productDescription = prompt('กรอกรายละเอียดสินค้า:');
-
-    const newProduct = {
-        id: generateProductId(), // สร้าง ID สินค้าใหม่
-        name: productName,
-        price: parseFloat(productPrice), // แปลงเป็นตัวเลข
-        description: productDescription,
-        image: 'path/to/default/image.jpg' // แทนที่ด้วยรูปภาพเริ่มต้น
-    };
-
-    fetch('allprod.json')
-        .then(response => response.json())
-        .then(data => {
-            const updatedData = [...data, newProduct];
-            saveData(updatedData);
-        });
-}
-
-function generateProductId() {
-    // สร้าง ID สินค้าใหม่โดยใช้ timestamp เพื่อให้ไม่ซ้ำกัน
-    return Date.now().toString();
-}
-
+        function addProduct() {
+            // Placeholder function for adding a product
+            alert('Implement functionality to add a new product.');
+        }
 
         function editProduct(productId) {
             window.location.href = `edit.html?id=${productId}`;
@@ -172,11 +114,12 @@ function generateProductId() {
         }
 
         function saveData(data) {
+            const accessToken = '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'; // Replace with your personal access token
             fetch('https://api.github.com/repos/ArplaneCorporation/pages/dispatches', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/vnd.github.everest-preview+json',
-                    'Authorization': `Bearer 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`,
+                    'Authorization': `Bearer ${accessToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
