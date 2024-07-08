@@ -103,7 +103,7 @@
         method: 'POST',
         headers: {
             'Accept': 'application/vnd.github.everest-preview+json',
-            'Authorization': ${{GITHUB_TOKEN}},
+            'Authorization': 'Bearer ${{GITHUB_TOKEN}}',
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
