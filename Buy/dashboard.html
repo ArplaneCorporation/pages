@@ -1,148 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>แดชบอร์ดสินค้า</title>
     <link href="https://fonts.googleapis.com/css2?family=Itim&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Itim', cursive;
-            margin: 20px;
-            background-color: #f8f9fa;
-        }
-        .product {
-            border: 1px solid #ccc;
-            padding: 20px;
-            margin-bottom: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .product img {
-            max-width: 100px;
-            height: auto;
-            margin-right: 20px;
-        }
-        .product div {
-            display: flex;
-            align-items: center;
-        }
-        .product h2 {
-            margin: 0;
-            font-size: 1.2em;
-        }
-        .product p {
-            margin: 0;
-        }
-        .product-actions {
-            margin-top: 10px;
-        }
-        .product-actions button {
-            padding: 10px 20px;
-            margin-right: 10px;
-            background-color: #ff5722;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .product-actions button:hover {
-            background-color: #f4511e;
-        }
-    </style>
+    <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
-    <h1>แดชบอร์ดสินค้า</h1>
-    <div id="productContainer">
-        <!-- Products will be dynamically added here -->
-    </div>
+    <header>
+        <h1>แดชบอร์ดสินค้า</h1>
+    </header>
+    <main>
+        <div id="product-container"></div>
+    </main>
 
-    <button onclick="addProduct()">เพิ่มสินค้า</button>
-
-    <script>
-        // Fetch and display existing products on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            fetchProducts();
-        });
-
-        function fetchProducts() {
-            fetch('allprod.json')
-                .then(response => response.json())
-                .then(data => {
-                    const productContainer = document.getElementById('productContainer');
-                    productContainer.innerHTML = ''; // Clear previous products
-                    data.forEach(product => {
-                        const productHTML = `
-                            <div class="product">
-                                <div>
-                                    <img src="${product.image}" alt="${product.name}">
-                                    <div>
-                                        <h2>${product.name}</h2>
-                                        <br><p>ราคา: ${product.price} บาท</p>
-                                        <br><p>รายละเอียด: ${product.description}</p>
-                                    </div>
-                                </div>
-                                <div class="product-actions">
-                                    <button onclick="editProduct('${product.id}')">แก้ไข</button>
-                                    <button onclick="deleteProduct('${product.id}')">ลบ</button>
-                                </div>
-                            </div>
-                        `;
-                        productContainer.innerHTML += productHTML;
-                    });
-                });
-        }
-
-        function addProduct() {
-            // Placeholder function for adding a product
-            alert('Implement functionality to add a new product.');
-        }
-
-        function editProduct(productId) {
-            window.location.href = `edit.html?id=${productId}`;
-        }
-
-        function deleteProduct(productId) {
-            if (confirm('คุณแน่ใจว่าต้องการลบสินค้านี้?')) {
-                fetch('allprod.json')
-                    .then(response => response.json())
-                    .then(data => {
-                        const updatedData = data.filter(product => product.id !== productId);
-                        saveData(updatedData);
-                    });
-            }
-        }
-
-        function saveData(data) {
-            const accessToken = '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'; // Replace with your personal access token
-            fetch('https://api.github.com/repos/ArplaneCorporation/pages/dispatches', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/vnd.github.everest-preview+json',
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    event_type: 'update-json',
-                    client_payload: {
-                        data: JSON.stringify(data)
-                    }
-                })
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('ข้อมูลถูกบันทึกเรียบร้อยแล้ว');
-                    location.reload();
-                } else {
-                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-                    console.error('Error:', response.statusText);
-                }
-            })
-            .catch(error => {
-                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-                console.error('Error:', error);
-            });
-        }
-    </script>
+    <script src="dashboard.js"></script>
 </body>
 </html>
