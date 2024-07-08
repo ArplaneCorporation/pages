@@ -9,14 +9,14 @@
         body {
             font-family: 'Itim', cursive;
             margin: 20px;
-            background-color: #f8f9fa;
+            background-color: #f8f9fa; /* สีพื้นหลัง */
         }
         .product {
             border: 1px solid #ccc;
             padding: 20px;
             margin-bottom: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff; /* สีพื้นหลังของสินค้า */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* เงา */
         }
         .product img {
             max-width: 100px;
@@ -30,9 +30,11 @@
         .product h2 {
             margin: 0;
             font-size: 1.2em;
+            color: #333; /* สีข้อความหัวข้อสินค้า */
         }
         .product p {
             margin: 0;
+            color: #666; /* สีข้อความรายละเอียด */
         }
         .product-actions {
             margin-top: 10px;
@@ -40,27 +42,28 @@
         .product-actions button {
             padding: 10px 20px;
             margin-right: 10px;
-            background-color: #ff5722;
-            color: #fff;
+            background-color: #ff5722; /* สีพื้นหลังของปุ่ม */
+            color: #fff; /* สีข้อความบนปุ่ม */
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            transition: background-color 0.3s ease; /* ให้สีพื้นหลังเปลี่ยนไป */
         }
         .product-actions button:hover {
-            background-color: #f4511e;
+            background-color: #f4511e; /* สีพื้นหลังของปุ่มเมื่อนำเมาส์มาวาง */
         }
     </style>
 </head>
 <body>
     <h1>แดชบอร์ดสินค้า</h1>
     <div id="productContainer">
-        <!-- Products will be dynamically added here -->
+        <!-- สินค้าจะถูกเพิ่มไปในนี้โดยอัตโนมัติ -->
     </div>
 
     <button onclick="addProduct()">เพิ่มสินค้า</button>
 
     <script>
-        // Fetch and display existing products on page load
+        // ดึงข้อมูลสินค้าที่มีอยู่เมื่อหน้าเว็บโหลดเสร็จ
         document.addEventListener('DOMContentLoaded', function() {
             fetchProducts();
         });
@@ -70,7 +73,7 @@
                 .then(response => response.json())
                 .then(data => {
                     const productContainer = document.getElementById('productContainer');
-                    productContainer.innerHTML = ''; // Clear previous products
+                    productContainer.innerHTML = ''; // ล้างสินค้าที่มีอยู่ก่อนหน้า
                     data.forEach(product => {
                         const productHTML = `
                             <div class="product">
@@ -93,19 +96,39 @@
                 });
         }
 
-        function addProduct() {
-            // You can implement functionality to add a new product here
-            // This might involve opening a form or modal for user input
-            // and then updating the product list accordingly
-            alert('Implement functionality to add a new product.');
-        }
+function addProduct() {
+    const productName = prompt('กรอกชื่อสินค้า:');
+    const productPrice = prompt('กรอกราคาสินค้า (บาท):');
+    const productDescription = prompt('กรอกรายละเอียดสินค้า:');
+
+    const newProduct = {
+        id: generateProductId(), // สร้าง ID สินค้าใหม่
+        name: productName,
+        price: parseFloat(productPrice), // แปลงเป็นตัวเลข
+        description: productDescription,
+        image: 'path/to/default/image.jpg' // แทนที่ด้วยรูปภาพเริ่มต้น
+    };
+
+    fetch('allprod.json')
+        .then(response => response.json())
+        .then(data => {
+            const updatedData = [...data, newProduct];
+            saveData(updatedData);
+        });
+}
+
+function generateProductId() {
+    // สร้าง ID สินค้าใหม่โดยใช้ timestamp เพื่อให้ไม่ซ้ำกัน
+    return Date.now().toString();
+}
+
 
         function editProduct(productId) {
             window.location.href = `edit.html?id=${productId}`;
         }
 
         function deleteProduct(productId) {
-            if (confirm('คุณแน่ใจว่าต้องการลบสินค้านี้?')) {
+            if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?')) {
                 fetch('allprod.json')
                     .then(response => response.json())
                     .then(data => {
