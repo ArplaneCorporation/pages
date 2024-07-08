@@ -10,15 +10,35 @@ header {
     color: white;
     padding: 10px 0;
     text-align: center;
+    position: relative;
 }
 
 header button {
     background-color: #fff;
-    border: none;
+    color: #ff5722;
+    border: 2px solid #ff5722;
+    border-radius: 5px;
     padding: 10px 20px;
     font-size: 1em;
     cursor: pointer;
     margin-left: 10px;
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header button:hover {
+    background-color: #ff5722;
+    color: white;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+header button:active {
+    background-color: #e64a19;
+    border-color: #e64a19;
 }
 
 h1 {
@@ -85,6 +105,11 @@ main {
     margin-top: 10px;
     cursor: pointer;
     font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.product button:hover {
+    background-color: #e64a19;
 }
 
 #product-form-container {
@@ -115,4 +140,9 @@ main {
     cursor: pointer;
     font-size: 1em;
     margin: 10px 5px;
+    transition: background-color 0.3s ease;
+}
+
+#product-form-container button:hover {
+    background-color: #e64a19;
 }
