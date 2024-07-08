@@ -99,23 +99,34 @@
         }
 
         function saveData(data) {
-            fetch('save.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.text())
-            .then(result => {
-                alert('ข้อมูลถูกบันทึกเรียบร้อยแล้ว');
-                location.reload();
-            })
-            .catch(error => {
-                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-                console.error('Error:', error);
-            });
+    fetch('https://api.github.com/repos/ArplaneCorporation/pages/dispatches', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/vnd.github.everest-preview+json',
+            'Authorization': {{secrets.PERSONAL_TOKEN}},
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            event_type: 'update-json',
+            client_payload: {
+                data: JSON.stringify(data)
+            }
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('ข้อมูลถูกบันทึกเรียบร้อยแล้ว');
+            location.reload();
+        } else {
+            alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            console.error('Error:', response.statusText);
         }
+    })
+    .catch(error => {
+        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        console.error('Error:', error);
+    });
+}       }
     </script>
 </body>
 </html>
