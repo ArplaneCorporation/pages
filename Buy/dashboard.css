@@ -12,9 +12,19 @@ header {
     text-align: center;
 }
 
+header button {
+    background-color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
 h1 {
     margin: 0;
     font-size: 2em;
+    display: inline;
 }
 
 main {
@@ -65,4 +75,44 @@ main {
     font-size: 1em;
     font-weight: bold;
     margin: 10px 0;
+}
+
+.product button {
+    background-color: #ff5722;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+#product-form-container {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    width: 300px;
+    margin: 20px auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+#product-form-container input,
+#product-form-container textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+#product-form-container button {
+    background-color: #ff5722;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1em;
+    margin: 10px 5px;
 }
