@@ -129,9 +129,32 @@
                 });
         }
 
-        function addProduct() {
-            alert('Implement functionality to add a new product.');
-        }
+function addProduct() {
+    const productName = prompt('กรอกชื่อสินค้า:');
+    const productPrice = prompt('กรอกราคาสินค้า (บาท):');
+    const productDescription = prompt('กรอกรายละเอียดสินค้า:');
+
+    const newProduct = {
+        id: generateProductId(), // สร้าง ID สินค้าใหม่
+        name: productName,
+        price: parseFloat(productPrice), // แปลงเป็นตัวเลข
+        description: productDescription,
+        image: 'path/to/default/image.jpg' // แทนที่ด้วยรูปภาพเริ่มต้น
+    };
+
+    fetch('allprod.json')
+        .then(response => response.json())
+        .then(data => {
+            const updatedData = [...data, newProduct];
+            saveData(updatedData);
+        });
+}
+
+function generateProductId() {
+    // สร้าง ID สินค้าใหม่โดยใช้ timestamp เพื่อให้ไม่ซ้ำกัน
+    return Date.now().toString();
+}
+
 
         function editProduct(productId) {
             window.location.href = `edit.html?id=${productId}`;
