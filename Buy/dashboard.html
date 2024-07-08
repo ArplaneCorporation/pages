@@ -10,10 +10,23 @@
 <body>
     <header>
         <h1>แดชบอร์ดสินค้า</h1>
+        <button onclick="showAddProductForm()">เพิ่มสินค้า</button>
     </header>
     <main>
         <div id="product-container"></div>
     </main>
+
+    <!-- Add/Edit Product Form -->
+    <div id="product-form-container" style="display:none;">
+        <h2 id="form-title">เพิ่มสินค้าใหม่</h2>
+        <input type="hidden" id="product-id">
+        <input type="text" id="product-name" placeholder="ชื่อสินค้า">
+        <input type="number" id="product-price" placeholder="ราคา">
+        <textarea id="product-description" placeholder="รายละเอียดสินค้า"></textarea>
+        <input type="text" id="product-image" placeholder="URL รูปภาพ">
+        <button onclick="saveProduct()">บันทึก</button>
+        <button onclick="hideProductForm()">ยกเลิก</button>
+    </div>
 
     <script src="dashboard.js"></script>
 </body>
