@@ -42,14 +42,57 @@
     th {
       background-color: #f2f2f2;
     }
+    form {
+      margin-top: 20px;
+    }
+    input[type="password"], input[type="submit"], input[type="text"] {
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    input[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    input[type="submit"]:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>เว็บไซต์ฐานข้อมูล</h1>
 
+    <!-- แบบฟอร์มเข้าสู่ระบบ -->
+    <form id="passwordForm">
+      <label for="password">รหัสผ่าน:</label>
+      <input type="password" id="password" name="password" required>
+      <input type="submit" value="เข้าสู่ระบบ">
+    </form>
+
+    <!-- แบบฟอร์มเพิ่มข้อมูล -->
+    <form id="addForm" style="display: none;">
+      <label for="firstName">ชื่อ:</label>
+      <input type="text" id="firstName" name="firstName" required>
+      <label for="lastName">นามสกุล:</label>
+      <input type="text" id="lastName" name="lastName" required>
+      <label for="facebook">Facebook:</label>
+      <input type="text" id="facebook" name="facebook">
+      <label for="instagram">Instagram:</label>
+      <input type="text" id="instagram" name="instagram">
+      <label for="tiktok">TikTok:</label>
+      <input type="text" id="tiktok" name="tiktok">
+      <input type="submit" value="บันทึกข้อมูล">
+    </form>
+
     <!-- ตารางแสดงข้อมูล -->
-    <table id="dataTable">
+    <table id="dataTable" style="display: none;">
       <thead>
         <tr>
           <th>ชื่อ</th>
@@ -67,10 +110,36 @@
 
   <script>
     // API Key จาก Google Cloud Console
-    const API_KEY = 'AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0';
+    const API_KEY = 'YOUR_API_KEY';
 
     // ID ของ Google Sheets ที่ใช้เข้าถึง
-    const SPREADSHEET_ID = '1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8';
+    const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID';
+
+    // ฟังก์ชันสำหรับเพิ่มข้อมูลใหม่ลงใน Google Sheets
+    function addData(firstName, lastName, facebook, instagram, tiktok) {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1:append?valueInputOption=USER_ENTERED&key=${API_KEY}`;
+      const data = {
+        values: [
+          [firstName, lastName, facebook, instagram, tiktok]
+        ]
+      };
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        alert('บันทึกข้อมูลเรียบร้อยแล้ว');
+        // เคลียร์ฟอร์มหลังจากบันทึก
+        document.getElementById('addForm').reset();
+        fetchData(); // ดึงข้อมูลล่าสุดหลังจากบันทึกข้อมูล
+      })
+      .catch(error => console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error));
+    }
 
     // ฟังก์ชันสำหรับดึงข้อมูลจาก Google Sheets และแสดงในตาราง
     function fetchData() {
@@ -91,12 +160,41 @@
             });
             dataTable.appendChild(newRow);
           });
+
+          // แสดงตารางเมื่อดึงข้อมูลสำเร็จ
+          document.getElementById('dataTable').style.display = 'table';
         })
         .catch(error => console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error));
     }
 
-    // เรียกใช้งานฟังก์ชัน fetchData เมื่อหน้าเว็บโหลดเสร็จ
-    fetchData();
+    // จัดการเหตุการณ์เมื่อส่งแบบฟอร์มรหัสผ่าน
+    const passwordForm = document.getElementById('passwordForm');
+    passwordForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const password = document.getElementById('password').value;
+
+      // เช็ครหัสผ่าน
+      if (password === 'your_password') { // เปลี่ยน 'your_password' เป็นรหัสผ่านที่คุณต้องการใช้
+        passwordForm.style.display = 'none'; // ซ่อนแบบฟอร์มรหัสผ่าน
+        document.getElementById('addForm').style.display = 'block'; // แสดงแบบฟอร์มเพิ่มข้อมูล
+        fetchData(); // เรียกใช้งานฟังก์ชันดึงข้อมูล
+      } else {
+        alert('รหัสผ่านไม่ถูกต้อง');
+      }
+    });
+
+    // จัดการเหตุการณ์เมื่อส่งแบบฟอร์มเพิ่มข้อมูล
+    const addForm = document.getElementById('addForm');
+    addForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const firstName = document.getElementById('firstName').value;
+      const lastName = document.getElementById('lastName').value;
+      const facebook = document.getElementById('facebook').value;
+      const instagram = document.getElementById('instagram').value;
+      const tiktok = document.getElementById('tiktok').value;
+
+      addData(firstName, lastName, facebook, instagram, tiktok); // เรียกใช้ฟังก์ชันเพิ่มข้อมูล
+    });
   </script>
 </body>
 </html>
