@@ -4,9 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>เว็บไซต์ฐานข้อมูล</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&display=swap">
   <style>
     body {
-      font-family: 'Prompt', sans-serif;
+      font-family: 'Noto Sans Thai', sans-serif;
       background-color: #f0f0f0;
       margin: 0;
       padding: 20px;
@@ -19,14 +20,16 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-    h1 {
+    h1, h2 {
       text-align: center;
     }
     form {
       display: flex;
       flex-direction: column;
+      max-width: 400px;
+      margin: 0 auto;
     }
-    input[type="text"], input[type="password"], input[type="submit"] {
+    input[type="password"], input[type="submit"] {
       margin: 10px 0;
       padding: 10px;
       font-size: 16px;
@@ -63,7 +66,7 @@
   <div class="container">
     <h1>เว็บไซต์ฐานข้อมูล</h1>
 
-    <!-- แบบฟอร์มสำหรับเข้าสู่ระบบ -->
+    <!-- แบบฟอร์มเข้าสู่ระบบ -->
     <form id="loginForm">
       <label for="password">รหัสผ่าน:</label>
       <input type="password" id="password" name="password" required>
@@ -71,6 +74,7 @@
     </form>
 
     <!-- ตารางสำหรับแสดงข้อมูล -->
+    <h2>ข้อมูลจาก Google Sheets</h2>
     <table id="dataTable">
       <thead>
         <tr id="tableHeader">
@@ -83,7 +87,6 @@
     </table>
   </div>
 
-  <script src="https://apis.google.com/js/api.js"></script>
   <script>
     // API Key จาก Google Cloud Console
     const API_KEY = 'AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0';
@@ -99,44 +102,33 @@
         .then(response => response.json())
         .then(data => {
           const headers = data.values[0]; // แถวแรกเป็นหัวตาราง
-          const rows = data.values.slice(1); // เริ่มจากแถวที่ 2 เป็นต้นไปสำหรับข้อมูล
-
-          // เติมหัวตาราง
-          const headerRow = document.getElementById('tableHeader');
-          headers.forEach(header => {
-            const th = document.createElement('th');
-            th.textContent = header;
-            headerRow.appendChild(th);
-          });
-
-          // เติมข้อมูลในตาราง
           const tableBody = document.getElementById('tableBody');
-          rows.forEach(rowData => {
-            const tr = document.createElement('tr');
-            rowData.forEach(cellData => {
-              const td = document.createElement('td');
-              td.textContent = cellData;
-              tr.appendChild(td);
-            });
-            tableBody.appendChild(tr);
-          });
+          const tableHeader = document.getElementById('tableHeader');
+
+          // เพิ่มหัวของตาราง
+          tableHeader.innerHTML = headers.map(header => `<th>${header}</th>`).join('');
+
+          // เพิ่มข้อมูลในตาราง
+          for (let i = 1; i < data.values.length; i++) {
+            const row = data.values[i];
+            const rowHtml = row.map(cell => `<td>${cell}</td>`).join('');
+            tableBody.innerHTML += `<tr>${rowHtml}</tr>`;
+          }
         })
         .catch(error => console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error));
     }
 
-    // ฟังก์ชันสำหรับจัดการการส่งค่าฟอร์ม
-    document.getElementById('loginForm').addEventListener('submit', function(event) {
+    // จัดการเหตุการณ์เมื่อส่งแบบฟอร์ม
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', function(event) {
       event.preventDefault();
       const password = document.getElementById('password').value;
 
-      // แทนที่ด้วยโลจิกการตรวจสอบรหัสผ่าน root
-      const rootPassword = 'admin';
-
-      if (password === rootPassword) {
-        // ถ้ารหัสผ่านถูกต้อง แสดงข้อมูล
-        displayData();
+      // ตรวจสอบรหัสผ่าน
+      if (password === 'root') {
+        displayData(); // เรียกใช้ฟังก์ชันแสดงข้อมูล
       } else {
-        alert('รหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง');
+        alert('รหัสผ่านไม่ถูกต้อง');
       }
     });
   </script>
