@@ -45,21 +45,6 @@
     input[type="submit"]:hover {
       background-color: #45a049;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      border: 2px solid #333;
-    }
-    th, td {
-      padding: 10px;
-      text-align: left;
-      border: 1px solid #333;
-    }
-    th {
-      background-color: #f2f2f2;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
@@ -72,50 +57,13 @@
       <input type="password" id="password" name="password" required>
       <input type="submit" value="เข้าสู่ระบบ">
     </form>
-
-    <!-- ตารางสำหรับแสดงข้อมูล -->
-    <h2>ข้อมูลจาก Google Sheets</h2>
-    <table id="dataTable">
-      <thead>
-        <tr id="tableHeader">
-          <!-- หัวของตารางจะถูกเติมค่าโดยอัตโนมัติ -->
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <!-- ข้อมูลในตารางจะถูกเติมค่าโดยอัตโนมัติ -->
-      </tbody>
-    </table>
   </div>
 
   <script>
-    // API Key จาก Google Cloud Console
-    const API_KEY = 'AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0';
-
-    // ID ของ Google Sheets ที่ใช้เข้าถึง
-    const SPREADSHEET_ID = '1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8';
-
-    // ฟังก์ชันสำหรับดึงข้อมูลและแสดงบนตาราง
+    // ฟังก์ชันสำหรับตรวจสอบรหัสผ่านและแสดงข้อมูล
     function displayData() {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1?key=${API_KEY}`;
-
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          const headers = data.values[0]; // แถวแรกเป็นหัวตาราง
-          const tableBody = document.getElementById('tableBody');
-          const tableHeader = document.getElementById('tableHeader');
-
-          // เพิ่มหัวของตาราง
-          tableHeader.innerHTML = headers.map(header => `<th>${header}</th>`).join('');
-
-          // เพิ่มข้อมูลในตาราง
-          for (let i = 1; i < data.values.length; i++) {
-            const row = data.values[i];
-            const rowHtml = row.map(cell => `<td>${cell}</td>`).join('');
-            tableBody.innerHTML += `<tr>${rowHtml}</tr>`;
-          }
-        })
-        .catch(error => console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error));
+      // ใส่โค้ดการดึงข้อมูลจาก Google Sheets ได้ที่นี่
+      alert('ยินดีต้อนรับ! คุณได้เข้าสู่ระบบเรียบร้อยแล้ว');
     }
 
     // จัดการเหตุการณ์เมื่อส่งแบบฟอร์ม
