@@ -11,39 +11,36 @@
       background-color: #f0f0f0;
       margin: 0;
       padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     .container {
       max-width: 800px;
-      margin: 0 auto;
       background-color: #fff;
-      padding: 20px;
+      padding: 30px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-    h1, h2 {
+    h1 {
       text-align: center;
+      color: #333;
     }
-    form {
-      display: flex;
-      flex-direction: column;
-      max-width: 400px;
-      margin: 0 auto;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
     }
-    input[type="password"], input[type="submit"] {
-      margin: 10px 0;
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
       padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      text-align: left;
     }
-    input[type="submit"] {
-      background-color: #4CAF50;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    input[type="submit"]:hover {
-      background-color: #45a049;
+    th {
+      background-color: #f2f2f2;
     }
   </style>
 </head>
@@ -51,34 +48,55 @@
   <div class="container">
     <h1>เว็บไซต์ฐานข้อมูล</h1>
 
-    <!-- แบบฟอร์มเข้าสู่ระบบ -->
-    <form id="loginForm">
-      <label for="password">รหัสผ่าน:</label>
-      <input type="password" id="password" name="password" required>
-      <input type="submit" value="เข้าสู่ระบบ">
-    </form>
+    <!-- ตารางแสดงข้อมูล -->
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>ชื่อ</th>
+          <th>นามสกุล</th>
+          <th>Facebook</th>
+          <th>Instagram</th>
+          <th>TikTok</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- ข้อมูลจะถูกแทรกที่นี่โดย JavaScript -->
+      </tbody>
+    </table>
   </div>
 
   <script>
-    // ฟังก์ชันสำหรับตรวจสอบรหัสผ่านและแสดงข้อมูล
-    function displayData() {
-      // ใส่โค้ดการดึงข้อมูลจาก Google Sheets ได้ที่นี่
-      alert('ยินดีต้อนรับ! คุณได้เข้าสู่ระบบเรียบร้อยแล้ว');
+    // API Key จาก Google Cloud Console
+    const API_KEY = 'AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0';
+
+    // ID ของ Google Sheets ที่ใช้เข้าถึง
+    const SPREADSHEET_ID = '1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8';
+
+    // ฟังก์ชันสำหรับดึงข้อมูลจาก Google Sheets และแสดงในตาราง
+    function fetchData() {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1?key=${API_KEY}`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const dataTable = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+          dataTable.innerHTML = ''; // เคลียร์ข้อมูลเดิมทิ้ง
+
+          data.values.forEach(row => {
+            const newRow = document.createElement('tr');
+            row.forEach(cell => {
+              const newCell = document.createElement('td');
+              newCell.textContent = cell;
+              newRow.appendChild(newCell);
+            });
+            dataTable.appendChild(newRow);
+          });
+        })
+        .catch(error => console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error));
     }
 
-    // จัดการเหตุการณ์เมื่อส่งแบบฟอร์ม
-    const loginForm = document.getElementById('loginForm');
-    loginForm.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const password = document.getElementById('password').value;
-
-      // ตรวจสอบรหัสผ่าน
-      if (password === 'root') {
-        displayData(); // เรียกใช้ฟังก์ชันแสดงข้อมูล
-      } else {
-        alert('รหัสผ่านไม่ถูกต้อง');
-      }
-    });
+    // เรียกใช้งานฟังก์ชัน fetchData เมื่อหน้าเว็บโหลดเสร็จ
+    fetchData();
   </script>
 </body>
 </html>
