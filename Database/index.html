@@ -110,10 +110,10 @@
 
   <script>
     // API Key จาก Google Cloud Console
-    const API_KEY = 'YOUR_API_KEY';
+    const API_KEY = 'AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0';
 
     // ID ของ Google Sheets ที่ใช้เข้าถึง
-    const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID';
+    const SPREADSHEET_ID = '1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8';
 
     // ฟังก์ชันสำหรับเพิ่มข้อมูลใหม่ลงใน Google Sheets
     function addData(firstName, lastName, facebook, instagram, tiktok) {
@@ -174,7 +174,7 @@
       const password = document.getElementById('password').value;
 
       // เช็ครหัสผ่าน
-      if (password === 'your_password') { // เปลี่ยน 'your_password' เป็นรหัสผ่านที่คุณต้องการใช้
+      if (password === 'root') { // เปลี่ยน '_password' เป็นรหัสผ่านที่คุณต้องการใช้
         passwordForm.style.display = 'none'; // ซ่อนแบบฟอร์มรหัสผ่าน
         document.getElementById('addForm').style.display = 'block'; // แสดงแบบฟอร์มเพิ่มข้อมูล
         fetchData(); // เรียกใช้งานฟังก์ชันดึงข้อมูล
