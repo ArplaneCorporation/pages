@@ -1,43 +1,144 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>จัดการฐานข้อมูล</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Noto Sans Thai', sans-serif;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เว็บไซต์ฐานข้อมูล</title>
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    input[type="text"], input[type="password"], input[type="submit"] {
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    input[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    input[type="submit"]:hover {
+      background-color: #45a049;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      border: 2px solid #333;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #333;
+    }
+    th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <div id="login-form">
-        <h2>เข้าสู่ระบบ</h2>
-        <input type="password" id="password" placeholder="กรอกรหัสผ่าน">
-        <button onclick="login()">เข้าสู่ระบบ</button>
-    </div>
-    
-    <div id="menu" style="display:none;">
-        <h2>จัดการฐานข้อมูล</h2>
-        <button onclick="viewData()">ดูข้อมูล</button>
-        <button onclick="editData()">แก้ไขข้อมูล</button>
-    </div>
-    
-    <div id="view-data" style="display:none;">
-        <h2>ฐานข้อมูล</h2>
-        <textarea id="data-view" readonly></textarea>
-        <button onclick="backToMenu()">กลับไปเมนู</button>
-    </div>
-    
-    <div id="edit-data" style="display:none;">
-        <h2>แก้ไขข้อมูล</h2>
-        <textarea id="data-edit"></textarea>
-        <button onclick="updateData()">อัพเดทข้อมูล</button>
-        <button onclick="backToMenu()">กลับไปเมนู</button>
-    </div>
-    
-    <script src="script.js"></script>
+  <div class="container">
+    <h1>เว็บไซต์ฐานข้อมูล</h1>
+
+    <!-- แบบฟอร์มสำหรับเข้าสู่ระบบ -->
+    <form id="loginForm">
+      <label for="password">รหัสผ่าน:</label>
+      <input type="password" id="password" name="password" required>
+      <input type="submit" value="เข้าสู่ระบบ">
+    </form>
+
+    <!-- ตารางสำหรับแสดงข้อมูล -->
+    <table id="dataTable">
+      <thead>
+        <tr id="tableHeader">
+          <!-- หัวของตารางจะถูกเติมค่าโดยอัตโนมัติ -->
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- ข้อมูลในตารางจะถูกเติมค่าโดยอัตโนมัติ -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script>
+    // API Key จาก Google Cloud Console
+    const API_KEY = 'AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0';
+
+    // ID ของ Google Sheets ที่ใช้เข้าถึง
+    const SPREADSHEET_ID = '1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8';
+
+    // ฟังก์ชันสำหรับดึงข้อมูลและแสดงบนตาราง
+    function displayData() {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1?key=${API_KEY}`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const headers = data.values[0]; // แถวแรกเป็นหัวตาราง
+          const rows = data.values.slice(1); // เริ่มจากแถวที่ 2 เป็นต้นไปสำหรับข้อมูล
+
+          // เติมหัวตาราง
+          const headerRow = document.getElementById('tableHeader');
+          headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+          });
+
+          // เติมข้อมูลในตาราง
+          const tableBody = document.getElementById('tableBody');
+          rows.forEach(rowData => {
+            const tr = document.createElement('tr');
+            rowData.forEach(cellData => {
+              const td = document.createElement('td');
+              td.textContent = cellData;
+              tr.appendChild(td);
+            });
+            tableBody.appendChild(tr);
+          });
+        })
+        .catch(error => console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error));
+    }
+
+    // ฟังก์ชันสำหรับจัดการการส่งค่าฟอร์ม
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const password = document.getElementById('password').value;
+
+      // แทนที่ด้วยโลจิกการตรวจสอบรหัสผ่าน root
+      const rootPassword = 'admin';
+
+      if (password === rootPassword) {
+        // ถ้ารหัสผ่านถูกต้อง แสดงข้อมูล
+        displayData();
+      } else {
+        alert('รหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง');
+      }
+    });
+  </script>
 </body>
 </html>
