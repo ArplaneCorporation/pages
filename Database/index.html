@@ -163,8 +163,7 @@
 
       // เช็ครหัสผ่าน
       if (password === 'root') { // เปลี่ยน '_password' เป็นรหัสผ่านที่คุณต้องการใช้
-        passwordForm.style.display = 'none'; // ซ่อนแบบฟอร์มรหัสผ่าน
-        document.getElementById('addForm').style.display = 'block'; // แสดงแบบฟอร์มเพิ่มข้อมูล
+        passwordForm.style.display = 'none'; // ซ่อนแบบฟอร์มรหัสผ่าน // แสดงแบบฟอร์มเพิ่มข้อมูล
         fetchData(); // เรียกใช้งานฟังก์ชันดึงข้อมูล
       } else {
         alert('รหัสผ่านไม่ถูกต้อง');
