@@ -17,7 +17,7 @@
       height: 100vh;
     }
     .container {
-      max-width: 800px;
+      max-width: 900px;
       background-color: #fff;
       padding: 30px;
       border-radius: 8px;
@@ -31,21 +31,28 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      text-align: center;
     }
     table, th, td {
       border: 1px solid #ddd;
     }
     th, td {
       padding: 10px;
-      text-align: left;
     }
     th {
+      background-color: #4CAF50;
+      color: white;
+    }
+    tr:nth-child(even) {
       background-color: #f2f2f2;
+    }
+    tr:hover {
+      background-color: #ddd;
     }
     form {
       margin-top: 20px;
     }
-    input[type="password"], input[type="submit"], input[type="text"] {
+    input[type="password"], input[type="submit"], input[type="text"], input[type="search"] {
       margin: 10px 0;
       padding: 10px;
       font-size: 16px;
@@ -54,14 +61,19 @@
       width: 100%;
       box-sizing: border-box;
     }
-    input[type="submit"] {
+    input[type="submit"], button {
       background-color: #4CAF50;
       color: white;
       cursor: pointer;
       transition: background-color 0.3s;
     }
-    input[type="submit"]:hover {
+    input[type="submit"]:hover, button:hover {
       background-color: #45a049;
+    }
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -76,8 +88,11 @@
       <input type="submit" value="เข้าสู่ระบบ">
     </form>
 
-    <!-- แบบฟอร์มเพิ่มข้อมูล -->
-
+    <!-- ปุ่มค้นหาและรีเฟรช -->
+    <div class="button-group" style="display: none;">
+      <input type="search" id="searchInput" placeholder="ค้นหา...">
+      <button id="refreshButton">รีเฟรช</button>
+    </div>
 
     <!-- ตารางแสดงข้อมูล -->
     <table id="dataTable" style="display: none;">
@@ -88,6 +103,7 @@
           <th>Facebook</th>
           <th>Instagram</th>
           <th>TikTok</th>
+          <th>เวลาทำการ</th>
         </tr>
       </thead>
       <tbody>
@@ -103,34 +119,8 @@
     // ID ของ Google Sheets ที่ใช้เข้าถึง
     const SPREADSHEET_ID = '1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8';
 
-    // ฟังก์ชันสำหรับเพิ่มข้อมูลใหม่ลงใน Google Sheets
-    function addData(firstName, lastName, facebook, instagram, tiktok) {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1:append?valueInputOption=USER_ENTERED&key=${API_KEY}`;
-      const data = {
-        values: [
-          [firstName, lastName, facebook, instagram, tiktok]
-        ]
-      };
-
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      })
-      .then(response => response.json())
-      .then(result => {
-        alert('บันทึกข้อมูลเรียบร้อยแล้ว');
-        // เคลียร์ฟอร์มหลังจากบันทึก
-        document.getElementById('addForm').reset();
-        fetchData(); // ดึงข้อมูลล่าสุดหลังจากบันทึกข้อมูล
-      })
-      .catch(error => console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error));
-    }
-
     // ฟังก์ชันสำหรับดึงข้อมูลจาก Google Sheets และแสดงในตาราง
-    function fetchData() {
+    function fetchData(query = '') {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1?key=${API_KEY}`;
 
       fetch(url)
@@ -140,13 +130,15 @@
           dataTable.innerHTML = ''; // เคลียร์ข้อมูลเดิมทิ้ง
 
           data.values.forEach(row => {
-            const newRow = document.createElement('tr');
-            row.forEach(cell => {
-              const newCell = document.createElement('td');
-              newCell.textContent = cell;
-              newRow.appendChild(newCell);
-            });
-            dataTable.appendChild(newRow);
+            if (row.some(cell => cell.includes(query))) {
+              const newRow = document.createElement('tr');
+              row.forEach(cell => {
+                const newCell = document.createElement('td');
+                newCell.textContent = cell;
+                newRow.appendChild(newCell);
+              });
+              dataTable.appendChild(newRow);
+            }
           });
 
           // แสดงตารางเมื่อดึงข้อมูลสำเร็จ
@@ -162,25 +154,27 @@
       const password = document.getElementById('password').value;
 
       // เช็ครหัสผ่าน
-      if (password === 'root') { // เปลี่ยน '_password' เป็นรหัสผ่านที่คุณต้องการใช้
-        passwordForm.style.display = 'none'; // ซ่อนแบบฟอร์มรหัสผ่าน // แสดงแบบฟอร์มเพิ่มข้อมูล
+      if (password === 'root') {
+        passwordForm.style.display = 'none'; // ซ่อนแบบฟอร์มรหัสผ่าน
+        document.querySelector('.button-group').style.display = 'flex'; // แสดงปุ่มค้นหาและรีเฟรช
         fetchData(); // เรียกใช้งานฟังก์ชันดึงข้อมูล
       } else {
         alert('รหัสผ่านไม่ถูกต้อง');
       }
     });
 
-    // จัดการเหตุการณ์เมื่อส่งแบบฟอร์มเพิ่มข้อมูล
-    const addForm = document.getElementById('addForm');
-    addForm.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const firstName = document.getElementById('firstName').value;
-      const lastName = document.getElementById('lastName').value;
-      const facebook = document.getElementById('facebook').value;
-      const instagram = document.getElementById('instagram').value;
-      const tiktok = document.getElementById('tiktok').value;
+    // ฟังก์ชันสำหรับค้นหาข้อมูลในตาราง
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', function() {
+      const query = searchInput.value;
+      fetchData(query); // ดึงข้อมูลที่มีคำค้นหา
+    });
 
-      addData(firstName, lastName, facebook, instagram, tiktok); // เรียกใช้ฟังก์ชันเพิ่มข้อมูล
+    // ฟังก์ชันสำหรับรีเฟรชข้อมูลในตาราง
+    const refreshButton = document.getElementById('refreshButton');
+    refreshButton.addEventListener('click', function() {
+      searchInput.value = ''; // เคลียร์ช่องค้นหา
+      fetchData(); // ดึงข้อมูลใหม่ทั้งหมด
     });
   </script>
 </body>
