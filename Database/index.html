@@ -75,6 +75,27 @@
       justify-content: space-between;
       margin-top: 20px;
     }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .pagination button {
+      margin: 0 5px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    .pagination button:hover {
+      background-color: #45a049;
+    }
+    .pagination button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -100,6 +121,7 @@
         <tr>
           <th>ชื่อ</th>
           <th>นามสกุล</th>
+          <th>ชื่อเล่น</th>
           <th>Facebook</th>
           <th>Instagram</th>
           <th>TikTok</th>
@@ -110,6 +132,12 @@
         <!-- ข้อมูลจะถูกแทรกที่นี่โดย JavaScript -->
       </tbody>
     </table>
+
+    <!-- การแบ่งหน้า -->
+    <div class="pagination" style="display: none;">
+      <button id="prevPage">ก่อนหน้า</button>
+      <button id="nextPage">ถัดไป</button>
+    </div>
   </div>
 
   <script>
@@ -119,6 +147,9 @@
     // ID ของ Google Sheets ที่ใช้เข้าถึง
     const SPREADSHEET_ID = '1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8';
 
+    let currentPage = 1;
+    const rowsPerPage = 10;
+
     // ฟังก์ชันสำหรับดึงข้อมูลจาก Google Sheets และแสดงในตาราง
     function fetchData(query = '') {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1?key=${API_KEY}`;
@@ -126,25 +157,40 @@
       fetch(url)
         .then(response => response.json())
         .then(data => {
-          const dataTable = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-          dataTable.innerHTML = ''; // เคลียร์ข้อมูลเดิมทิ้ง
-
-          data.values.forEach(row => {
-            if (row.some(cell => cell.includes(query))) {
-              const newRow = document.createElement('tr');
-              row.forEach(cell => {
-                const newCell = document.createElement('td');
-                newCell.textContent = cell;
-                newRow.appendChild(newCell);
-              });
-              dataTable.appendChild(newRow);
-            }
-          });
-
-          // แสดงตารางเมื่อดึงข้อมูลสำเร็จ
-          document.getElementById('dataTable').style.display = 'table';
+          const filteredData = data.values.filter(row => row.some(cell => cell.includes(query)));
+          renderTable(filteredData);
         })
         .catch(error => console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error));
+    }
+
+    // ฟังก์ชันสำหรับแสดงข้อมูลในตาราง
+    function renderTable(data) {
+      const dataTable = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+      dataTable.innerHTML = ''; // เคลียร์ข้อมูลเดิมทิ้ง
+
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const paginatedData = data.slice(start, end);
+
+      paginatedData.forEach(row => {
+        const newRow = document.createElement('tr');
+        row.forEach(cell => {
+          const newCell = document.createElement('td');
+          newCell.textContent = cell;
+          newRow.appendChild(newCell);
+        });
+        dataTable.appendChild(newRow);
+      });
+
+      // แสดงตารางเมื่อดึงข้อมูลสำเร็จ
+      document.getElementById('dataTable').style.display = 'table';
+
+      // อัปเดตสถานะปุ่มแบ่งหน้า
+      document.getElementById('prevPage').disabled = currentPage === 1;
+      document.getElementById('nextPage').disabled = end >= data.length;
+
+      // แสดงการแบ่งหน้า
+      document.querySelector('.pagination').style.display = 'flex';
     }
 
     // จัดการเหตุการณ์เมื่อส่งแบบฟอร์มรหัสผ่าน
@@ -167,6 +213,7 @@
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('input', function() {
       const query = searchInput.value;
+      currentPage = 1; // รีเซ็ตไปที่หน้าที่ 1 เมื่อค้นหาใหม่
       fetchData(query); // ดึงข้อมูลที่มีคำค้นหา
     });
 
@@ -174,7 +221,19 @@
     const refreshButton = document.getElementById('refreshButton');
     refreshButton.addEventListener('click', function() {
       searchInput.value = ''; // เคลียร์ช่องค้นหา
+      currentPage = 1; // รีเซ็ตไปที่หน้าที่ 1 เมื่อรีเฟรช
       fetchData(); // ดึงข้อมูลใหม่ทั้งหมด
+    });
+
+    // ฟังก์ชันสำหรับจัดการการแบ่งหน้า
+    document.getElementById('prevPage').addEventListener('click', function() {
+      currentPage--;
+      fetchData(searchInput.value);
+    });
+
+    document.getElementById('nextPage').addEventListener('click', function() {
+      currentPage++;
+      fetchData(searchInput.value);
     });
   </script>
 </body>
