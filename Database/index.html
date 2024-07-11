@@ -96,6 +96,12 @@
       background-color: #ccc;
       cursor: not-allowed;
     }
+    .summary {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -140,6 +146,11 @@
       <button id="prevPage">ก่อนหน้า</button>
       <button id="nextPage">ถัดไป</button>
     </div>
+
+    <!-- สรุปข้อมูล -->
+    <div id="summary" class="summary" style="display: none;">
+      ในฐานข้อมูลนี้มีผู้ชาย <span id="maleCount">0</span> คน มีผู้หญิง <span id="femaleCount">0</span> คน
+    </div>
   </div>
 
   <script>
@@ -161,6 +172,7 @@
         .then(data => {
           const filteredData = data.values.filter(row => row.some(cell => cell.includes(query)));
           renderTable(filteredData);
+          updateSummary(filteredData);
         })
         .catch(error => console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error));
     }
@@ -193,6 +205,26 @@
 
       // แสดงการแบ่งหน้า
       document.querySelector('.pagination').style.display = 'flex';
+    }
+
+    // ฟังก์ชันสำหรับอัปเดตสรุปข้อมูล
+    function updateSummary(data) {
+      let maleCount = 0;
+      let femaleCount = 0;
+
+      data.forEach(row => {
+        if (row[1].includes('เด็กชาย')) {
+          maleCount++;
+        } else if (row[1].includes('เด็กหญิง')) {
+          femaleCount++;
+        }
+      });
+
+      document.getElementById('maleCount').textContent = maleCount;
+      document.getElementById('femaleCount').textContent = femaleCount;
+
+      // แสดงสรุปข้อมูลเมื่ออัปเดตข้อมูลสำเร็จ
+      document.getElementById('summary').style.display = 'block';
     }
 
     // จัดการเหตุการณ์เมื่อส่งแบบฟอร์มรหัสผ่าน
