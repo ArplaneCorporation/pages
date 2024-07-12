@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบต้อนรับ</title>
+    <style>
+        body {
+            font-family: 'Noto Sans Thai', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"], input[type="password"] {
+            display: block;
+            width: 80%;
+            margin: 10px auto;
+            padding: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ระบบต้อนรับ</h1>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="ชื่อผู้ใช้" required>
+            <input type="password" id="password" placeholder="รหัสผ่าน" required>
+            <button type="submit">เข้าสู่ระบบ</button>
+        </form>
+        <div id="greeting" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
+
+            fetch('https://sheets.googleapis.com/v4/spreadsheets/1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8/values/UserWelcomeDB?key=AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0')
+                .then(response => response.json())
+                .then(data => {
+                    var rows = data.values;
+                    var userRow = rows.find(row => row[4] === username && row[5] === password);
+                    if (userRow) {
+                        var firstName = userRow[1];
+                        var lastName = userRow[2];
+                        var gender = userRow[6];
+                        var greetingText = generateGreeting(firstName, gender);
+                        document.getElementById('greeting').innerText = greetingText;
+                    } else {
+                        document.getElementById('greeting').innerText = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        function generateGreeting(firstName, gender) {
+            var hours = new Date().getHours();
+            var timeOfDay;
+            if (hours < 12) {
+                timeOfDay = "ตอนเช้า";
+            } else if (hours < 18) {
+                timeOfDay = "ตอนบ่าย";
+            } else if (hours < 21) {
+                timeOfDay = "ตอนเย็น";
+            } else {
+                timeOfDay = "ตอนดึก";
+            }
+
+            if (gender === "Male") {
+                return `สวัสดี${timeOfDay}นะคะ คุณ${firstName} วันนี้คุณจะเข้ามาทำอะไรคะ`;
+            } else if (gender === "Female") {
+                return `สวัสดี${timeOfDay}นะครับ คุณ${firstName} วันนี้คุณจะเข้ามาทำอะไรครับ`;
+            } else {
+                return `สวัสดี${timeOfDay} คุณ${firstName}`;
+            }
+        }
+    </script>
+</body>
+</html>
