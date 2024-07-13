@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หน้าใบอนุญาต</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&display=swap');
+        body {
+            font-family: 'Noto Sans Thai', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .certificate-info {
+            margin-bottom: 20px;
+        }
+        .certificate-info div {
+            margin-bottom: 10px;
+        }
+        .print-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: none; /* Hide by default */
+        }
+        .print-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>หน้าใบอนุญาต</h1>
+        <div id="certificate-info" class="certificate-info">
+            <!-- Data will be populated here -->
+        </div>
+        <button id="print-button" class="print-button" onclick="printCertificate()">พิมพ์ใบอนุญาต</button>
+    </div>
+    <script>
+        function printCertificate() {
+            const printButton = document.getElementById('print-button');
+            printButton.style.display = 'none';  // Hide the print button before printing
+            window.print();
+        }
+
+        window.onafterprint = function() {
+            const printButton = document.getElementById('print-button');
+            printButton.style.display = 'inline-block';  // Show the print button after printing
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const certificateId = urlParams.get('id');
+            const spreadsheetId = '1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8';
+            const sheetName = 'CertAuth';
+            const apiKey = 'AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0';
+
+            if (!certificateId) {
+                alert('กรุณาระบุ certificate-id ใน URL เช่น ?id=CER1039');
+                return;
+            }
+
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}?key=${apiKey}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const infoDiv = document.getElementById('certificate-info');
+                    const printButton = document.getElementById('print-button');
+                    const rows = data.values.slice(1); // Skip the header row
+
+                    const filteredRow = rows.find(row => row[0] === certificateId);
+
+                    if (filteredRow) {
+                        infoDiv.innerHTML = `
+                            <div>ใบอนุญาตเลขที่: ${filteredRow[0]}</div>
+                            <div>ชื่อผู้ได้รับอนุญาต: ${filteredRow[1]}</div>
+                            <div>สถานะใบอนุญาต: ${filteredRow[4]}</div>
+                            <div>อนุญาตเกี่ยวกับ: ${filteredRow[3]}</div>
+                        `;
+                        printButton.style.display = 'inline-block';
+                    } else {
+                        infoDiv.innerHTML = '<div>ไม่พบข้อมูลใบอนุญาต</div>';
+                    }
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+    </script>
+</body>
+</html>
