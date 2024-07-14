@@ -3,50 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบโฆษณา</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        .frame {
-            border: 5px solid #ccc;
-            padding: 10px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .frame img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-    </style>
+    <title>โฆษณา</title>
 </head>
 <body>
-    <div class="container">
-        <h1>ระบบโฆษณา</h1>
-        <div class="frame" id="image-container">
-            <!-- Embedded image will be displayed here -->
-        </div>
+    <div id="image-container">
+        <!-- Embedded image will be displayed here -->
     </div>
 
     <script>
@@ -79,6 +40,8 @@
                 const img = document.createElement('img');
                 img.src = randomImage;
                 img.alt = 'โฆษณา';
+                img.style.width = '100%';
+                img.style.height = 'auto';
                 imageContainer.appendChild(img);
             } catch (error) {
                 console.error('Error fetching images:', error);
