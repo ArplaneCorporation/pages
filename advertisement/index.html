@@ -52,7 +52,7 @@
     <script>
         // Function to fetch all images from a folder
         async function fetchAndDisplayRandomImage(folder) {
-            const response = await fetch(https://api.github.com/repos/ArplaneCorporation/pages/contents/advertisement/images);
+            const response = await fetch('https://api.github.com/repos/ArplaneCorporation/pages/contents/advertisement/images');
             const data = await response.text();
             const parser = new DOMParser();
             const htmlDocument = parser.parseFromString(data, 'text/html');
