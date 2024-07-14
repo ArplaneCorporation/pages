@@ -11,12 +11,23 @@
     </div>
 
     <script>
-        async function fetchAndDisplayRandomImage() {
-            const repoOwner = 'ArplaneCorporation';
-            const repoName = 'pages';
-            const folderPath = 'advertisement/images';
+        // Function to get query parameters from URL
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const regex = /([^&=]+)=([^&]*)/g;
+            let match;
 
-            const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${folderPath}`;
+            while (match = regex.exec(queryString)) {
+                params[decodeURIComponent(match[1])] = decodeURIComponent(match[2]);
+            }
+
+            return params;
+        }
+
+        // Function to fetch all images from a folder
+        async function fetchAndDisplayRandomImage(folder, size) {
+            const apiUrl = `https://api.github.com/repos/ArplaneCorporation/pages/contents/${folder}`;
 
             try {
                 const response = await fetch(apiUrl);
@@ -25,7 +36,16 @@
                 }
                 const data = await response.json();
 
-                const images = data.filter(item => item.type === 'file' && item.name.match(/\.(jpeg|jpg|gif|png)$/));
+                let images = data.filter(item => item.type === 'file' && item.name.match(/\.(jpeg|jpg|gif|png)$/));
+
+                // Filter images by size if specified
+                if (size) {
+                    images = images.filter(image => {
+                        const parts = image.name.split('_');
+                        const dimensions = parts[parts.length - 1].split('.')[0];
+                        return dimensions === size;
+                    });
+                }
 
                 if (images.length === 0) {
                     throw new Error('No images found in the specified folder.');
@@ -50,8 +70,12 @@
             }
         }
 
+        // Get query parameters
+        const params = getQueryParams();
+        const size = params.size || '';
+
         // Call the function to fetch and display a random image
-        fetchAndDisplayRandomImage();
+        fetchAndDisplayRandomImage('advertisement/images', size);
     </script>
 </body>
 </html>
