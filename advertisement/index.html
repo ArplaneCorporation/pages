@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Image on Load</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #image-container {
+            margin-top: 20px;
+        }
+
+        #image-container img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px auto;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Random Image on Load</h1>
+        <div id="image-container">
+            <!-- Random image will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        // Function to fetch all images from a folder
+        async function fetchAndDisplayRandomImage(folder) {
+            const response = await fetch(folder);
+            const data = await response.text();
+            const parser = new DOMParser();
+            const htmlDocument = parser.parseFromString(data, 'text/html');
+            const links = Array.from(htmlDocument.links).map(link => link.href);
+
+            const images = links.filter(link => link.match(/\.(jpeg|jpg|gif|png)$/));
+
+            const randomIndex = Math.floor(Math.random() * images.length);
+            const randomImage = images[randomIndex];
+
+            const imageContainer = document.getElementById('image-container');
+            imageContainer.innerHTML = '';
+
+            const img = document.createElement('img');
+            img.src = randomImage;
+            img.alt = 'Random Image';
+            imageContainer.appendChild(img);
+        }
+
+        // Call the function with your folder path
+        fetchAndDisplayRandomImage('images/');
+    </script>
+</body>
+</html>
