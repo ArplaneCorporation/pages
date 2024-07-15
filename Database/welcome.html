@@ -51,31 +51,33 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             var username = document.getElementById('username').value;
             var password = document.getElementById('password').value;
 
-            fetch('https://sheets.googleapis.com/v4/spreadsheets/1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8/values/UserWelcomeDB?key=AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0')
-                .then(response => response.json())
-                .then(data => {
-                    var rows = data.values;
-                    var userRow = rows.find(row => row[4] === username && row[5] === password);
-                    if (userRow) {
-                        var firstName = userRow[1];  // Assuming the first name is in column B
-                        var lastName = userRow[2];   // Assuming the last name is in column C
-                        var nickname = userRow[3];   // Assuming the nickname is in column D
-                        var gender = userRow[6];
-                        var greetingText = generateGreeting(firstName, lastName, nickname, gender);
-                        document.getElementById('greeting').innerText = greetingText;
-                    } else {
-                        document.getElementById('greeting').innerText = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
-                    }
-                })
-                .catch(error => console.error('Error:', error));
+            try {
+                let response = await fetch('https://sheets.googleapis.com/v4/spreadsheets/1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8/values/UserWelcomeDB?key=AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0');
+                let data = await response.json();
+                var rows = data.values;
+                var userRow = rows.find(row => row[4] === username && row[5] === password);
+                if (userRow) {
+                    var firstName = userRow[1];  // Assuming the first name is in column B
+                    var lastName = userRow[2];   // Assuming the last name is in column C
+                    var nickname = userRow[3];   // Assuming the nickname is in column D
+                    var gender = userRow[6];
+                    var greetingText = await generateGreeting(firstName, lastName, nickname, gender);
+                    document.getElementById('greeting').innerText = greetingText;
+                } else {
+                    document.getElementById('greeting').innerText = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('greeting').innerText = 'เกิดข้อผิดพลาดในการดึงข้อมูล';
+            }
         });
 
-        function generateGreeting(firstName, lastName, nickname, gender) {
+        async function generateGreeting(firstName, lastName, nickname, gender) {
             var hours = new Date().getHours();
             var timeOfDay;
             if (hours < 12) {
@@ -90,22 +92,26 @@
 
             var sheetName = (gender === "Male") ? "GreetingMale" : "GreetingFemale";
 
-            return fetch(`https://sheets.googleapis.com/v4/spreadsheets/1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8/values/${sheetName}?key=AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0`)
-                .then(response => response.json())
-                .then(data => {
-                    // สุ่มข้อความจากคอลัมน์ A แถวที่ 2 เป็นต้นไป
-                    var randomIndex = Math.floor(Math.random() * (data.values.length - 1)) + 1; // เริ่มต้นที่แถวที่ 2
-                    var randomText = data.values[randomIndex][0]; // สมมติข้อความอยู่ในเซลล์ A2 เป็นต้นไป
-                    var greetingTemplate = randomText.replace("{firstName}", firstName)
-                                                     .replace("{lastName}", lastName)
-                                                     .replace("{nickname}", nickname)
-                                                     .replace("{time}", timeOfDay);
-                    return greetingTemplate;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    return 'ไม่สามารถโหลดข้อความต้อนรับได้';
-                });
+            try {
+                let response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8/values/${sheetName}?key=AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0`);
+                let data = await response.json();
+
+                if (!data.values || data.values.length < 2) {
+                    throw new Error('ไม่มีข้อมูลต้อนรับ');
+                }
+
+                // สุ่มข้อความจากคอลัมน์ A แถวที่ 2 เป็นต้นไป
+                var randomIndex = Math.floor(Math.random() * (data.values.length - 1)) + 1; // เริ่มต้นที่แถวที่ 2
+                var randomText = data.values[randomIndex][0]; // สมมติข้อความอยู่ในเซลล์ A2 เป็นต้นไป
+                var greetingTemplate = randomText.replace("{firstName}", firstName)
+                                                 .replace("{lastName}", lastName)
+                                                 .replace("{nickname}", nickname)
+                                                 .replace("{time}", timeOfDay);
+                return greetingTemplate;
+            } catch (error) {
+                console.error('Error:', error);
+                return 'ไม่สามารถโหลดข้อความต้อนรับได้';
+            }
         }
     </script>
 </body>
