@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบต้อนรับ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Noto Sans Thai', sans-serif;
@@ -61,10 +62,11 @@
                     var rows = data.values;
                     var userRow = rows.find(row => row[4] === username && row[5] === password);
                     if (userRow) {
-                        var firstName = userRow[1];
-                        var lastName = userRow[2];
+                        var firstName = userRow[1];  // Assuming the first name is in column B
+                        var lastName = userRow[2];   // Assuming the last name is in column C
+                        var nickname = userRow[3];   // Assuming the nickname is in column D
                         var gender = userRow[6];
-                        var greetingText = generateGreeting(firstName, gender);
+                        var greetingText = generateGreeting(firstName, lastName, nickname, gender);
                         document.getElementById('greeting').innerText = greetingText;
                     } else {
                         document.getElementById('greeting').innerText = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
@@ -73,7 +75,7 @@
                 .catch(error => console.error('Error:', error));
         });
 
-        function generateGreeting(firstName, gender) {
+        function generateGreeting(firstName, lastName, nickname, gender) {
             var hours = new Date().getHours();
             var timeOfDay;
             if (hours < 12) {
@@ -86,13 +88,24 @@
                 timeOfDay = "ตอนดึก";
             }
 
-            if (gender === "Male") {
-                return `สวัสดี${timeOfDay}นะคะ คุณ${firstName} วันนี้คุณจะเข้ามาทำอะไรคะ`;
-            } else if (gender === "Female") {
-                return `สวัสดี${timeOfDay}นะครับ คุณ${firstName} วันนี้คุณจะเข้ามาทำอะไรครับ`;
-            } else {
-                return `สวัสดี${timeOfDay} คุณ${firstName}`;
-            }
+            var sheetName = (gender === "Male") ? "GreetingMale" : "GreetingFemale";
+
+            return fetch(`https://sheets.googleapis.com/v4/spreadsheets/1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8/values/${sheetName}?key=AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0`)
+                .then(response => response.json())
+                .then(data => {
+                    // สุ่มข้อความจากคอลัมน์ A แถวที่ 2 เป็นต้นไป
+                    var randomIndex = Math.floor(Math.random() * (data.values.length - 1)) + 1; // เริ่มต้นที่แถวที่ 2
+                    var randomText = data.values[randomIndex][0]; // สมมติข้อความอยู่ในเซลล์ A2 เป็นต้นไป
+                    var greetingTemplate = randomText.replace("{firstName}", firstName)
+                                                     .replace("{lastName}", lastName)
+                                                     .replace("{nickname}", nickname)
+                                                     .replace("{time}", timeOfDay);
+                    return greetingTemplate;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    return 'ไม่สามารถโหลดข้อความต้อนรับได้';
+                });
         }
     </script>
 </body>
