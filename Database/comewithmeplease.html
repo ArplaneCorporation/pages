@@ -28,20 +28,26 @@
 
         async function fetchData(uid, user) {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
-            const response = await fetch(url);
-            const data = await response.json();
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                console.log(data); // แสดงข้อมูลที่ดึงมาเพื่อตรวจสอบ
 
-            const rows = data.values;
-            let name = 'Unknown';
+                const rows = data.values;
+                let name = 'Unknown';
 
-            for (const row of rows) {
-                if (row[0] === uid) {
-                    name = user === 'f' ? row[1] : row[2];
-                    break;
+                for (const row of rows) {
+                    if (row[0] === uid) {
+                        name = user === 'f' ? row[1] : row[2];
+                        break;
+                    }
                 }
-            }
 
-            return name;
+                return name;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return 'Error';
+            }
         }
 
         async function displayMessage() {
