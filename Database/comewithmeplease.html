@@ -37,7 +37,9 @@
                 const rows = data.values;
                 let name = 'Unknown';
 
-                for (const row of rows) {
+                // เริ่มจากแถวที่ 1 (แถวที่ 0 เป็น header)
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
                     if (row[0] === uid) {
                         name = user === 'f' ? row[1] : row[2];
                         break;
