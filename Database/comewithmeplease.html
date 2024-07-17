@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>กลับกับผมได้ไหม</title>
+    <style>
+        body {
+            font-family: 'Noto Sans Thai', sans-serif;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #message {
+            font-size: 2em;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="message">กลับกับผมได้ไหม</h1>
+    <script>
+        const API_KEY = 'AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0';
+        const SHEET_ID = '1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8';
+        const SHEET_NAME = 'FatherMother';
+
+        async function fetchData(uid, user) {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const rows = data.values;
+            let name = 'Unknown';
+
+            for (const row of rows) {
+                if (row[0] === uid) {
+                    name = user === 'f' ? row[1] : row[2];
+                    break;
+                }
+            }
+
+            return name;
+        }
+
+        async function displayMessage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const uid = urlParams.get('uid');
+            const user = urlParams.get('user');
+
+            if (uid && user) {
+                const name = await fetchData(uid, user);
+                document.getElementById('message').innerText = `กลับกับ${name}ได้ไหม`;
+            }
+        }
+
+        displayMessage();
+    </script>
+</body>
+</html>
