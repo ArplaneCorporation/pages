@@ -14,14 +14,26 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            flex-direction: column;
         }
         #message {
             font-size: 2em;
+            margin-bottom: auto;
+        }
+        #footer {
+            font-size: 0.75em;
+            text-align: center;
+            margin-top: auto;
+            padding: 10px;
         }
     </style>
 </head>
 <body>
     <h1 id="message">กลับกับผมได้ไหม</h1>
+    <div id="footer">
+        <p>ระบบฐานข้อมูลผู้ใช้หลัก x ระบบฐานข้อมูลผู้ใช้ลึก</p>
+        <p>เวอร์ชั่น 1.0.0</p>
+    </div>
     <script>
         const API_KEY = 'AIzaSyDgxTWXvIUQND4C7gzapRW6KNqEaBPQ8Y0';
         const SHEET_ID = '1pe8ZSERgi68jnXpJRH5U6w6hoTJr27wHWtIGcB51vE8';
@@ -35,11 +47,13 @@
                 console.log(data); // แสดงข้อมูลที่ดึงมาเพื่อตรวจสอบ
 
                 const rows = data.values;
+                console.log('Rows:', rows); // ตรวจสอบข้อมูลแถวที่ดึงมา
                 let name = 'Unknown';
 
                 // เริ่มจากแถวที่ 1 (แถวที่ 0 เป็น header)
                 for (let i = 1; i < rows.length; i++) {
                     const row = rows[i];
+                    console.log('Checking row:', row); // แสดงข้อมูลแถวที่กำลังตรวจสอบ
                     if (row[0] === uid) {
                         name = user === 'f' ? row[1] : row[2];
                         break;
@@ -57,10 +71,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             const uid = urlParams.get('uid');
             const user = urlParams.get('user');
+            console.log('UID:', uid); // ตรวจสอบค่า UID ที่ได้รับจาก URL
+            console.log('User:', user); // ตรวจสอบค่า User ที่ได้รับจาก URL
 
             if (uid && user) {
                 const name = await fetchData(uid, user);
+                console.log('Name:', name); // ตรวจสอบชื่อที่ดึงมา
                 document.getElementById('message').innerText = `กลับกับ${name}ได้ไหม`;
+            } else {
+                console.log('Invalid UID or User'); // แสดงข้อความเมื่อ UID หรือ User ไม่ถูกต้อง
             }
         }
 
