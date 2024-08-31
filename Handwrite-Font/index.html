@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chayaphol Roibang's Handwriting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ดาวน์โหลดฟอนต์</h1>
+        <p id="countdown"></p>
+        <div id="preview" style="display: none;">
+            <h2>พรีวิวฟอนต์</h2>
+            <p style="font-family: 'Chayaphol Roibang's Handwriting';">นี่คือฟอนต์ที่สร้างขึ้นเนื่องจากความอยากได้ฟอนต์เป็นของตนเอง นี่คือฟอนต์แรกที่ทำด้วยความตั้งใจ</p>
+            <a id="download" href="#" style="display: none;">ดาวน์โหลดฟอนต์</a>
+        </div>
+    </div>
+    <script>
+        const countdownElement = document.getElementById('countdown');
+        const previewElement = document.getElementById('preview');
+        const downloadLink = document.getElementById('download');
+
+        // วันที่และเวลาที่กำหนด
+        const targetDate = new Date('2024-09-01T00:00:00+07:00').getTime();
+
+        // ฟังก์ชันนับเวลา
+        const countdown = setInterval(() => {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            // คำนวณวัน ชั่วโมง นาที และวินาที
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // แสดงผล
+            countdownElement.innerHTML = `${days} วัน ${hours} ชั่วโมง ${minutes} นาที ${seconds} วินาที`;
+
+            // หากนับเวลาเสร็จสิ้น
+            if (distance < 0) {
+                clearInterval(countdown);
+                countdownElement.innerHTML = "เวลาเสร็จสิ้น!";
+                previewElement.style.display = "block";
+                downloadLink.href = "assets/font.otf"; // URL สำหรับดาวน์โหลดฟอนต์
+                downloadLink.style.display = "inline";
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
