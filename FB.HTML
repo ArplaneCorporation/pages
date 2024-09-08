@@ -54,12 +54,16 @@
     </div>
 
     <script>
-        document.getElementById('copyButton').onclick = function() {
-            const inputField = document.getElementById('inputField');
-            inputField.select();
-            document.execCommand('copy');
+document.getElementById('copyButton').onclick = function() {
+    const inputField = document.getElementById('inputField');
+    navigator.clipboard.writeText(inputField.value)
+        .then(() => {
             alert('คัดลอกข้อมูลเรียบร้อยแล้ว!');
-        };
+        })
+        .catch(err => {
+            console.error('เกิดข้อผิดพลาดในการคัดลอก:', err);
+        });
+};
 
         document.getElementById('facebookButton').onclick = function() {
             const inputField = document.getElementById('inputField');
