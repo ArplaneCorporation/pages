@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตัวนับผู้ติดตาม TikTok</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      padding: 20px;
+    }
+    .profile-card {
+      max-width: 400px;
+      margin: auto;
+      text-align: center;
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .profile-card img {
+      border-radius: 50%;
+    }
+    .loading {
+      font-size: 1.5rem;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center mb-4">ตัวนับผู้ติดตาม TikTok</h1>
+    
+    <!-- Input สำหรับชื่อผู้ใช้ -->
+    <div class="mb-4">
+      <input type="text" id="usernameInput" class="form-control" placeholder="ใส่ชื่อผู้ใช้ TikTok" />
+      <button class="btn btn-primary mt-2" onclick="fetchData()">ดูข้อมูลผู้ใช้</button>
+    </div>
+
+    <!-- ข้อมูลโปรไฟล์ผู้ใช้ -->
+    <div id="userInfo" class="profile-card d-none">
+      <img id="avatar" src="" alt="Avatar" width="100" height="100" />
+      <h3 id="nickname">ชื่อเล่น</h3>
+      <p id="username"></p>
+      <p><strong>ผู้ติดตาม:</strong> <span id="followerCount">0</span></p>
+      <p><strong>กำลังติดตาม:</strong> <span id="followingCount">0</span></p>
+      <p><strong>หัวใจ:</strong> <span id="heartCount">0</span></p>
+      <p><strong>วิดีโอ:</strong> <span id="videoCount">0</span></p>
+    </div>
+
+    <!-- ข้อความ Loading -->
+    <div id="loading" class="text-center loading d-none">กำลังโหลด...</div>
+
+  </div>
+
+  <script>
+    let sec_uid = '';
+    let uniqueId = '';
+    let timer;
+
+    // ฟังก์ชันสำหรับการเลื่อนจำนวนอย่างลื่นไหล
+    function animateValue(element, start, end, duration) {
+      let startTime = null;
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = timestamp - startTime;
+        const progressRate = Math.min(progress / duration, 1);
+        const currentValue = Math.floor(start + progressRate * (end - start));
+        element.innerText = currentValue;
+        if (progress < duration) {
+          window.requestAnimationFrame(step);
+        }
+      }
+
+      window.requestAnimationFrame(step);
+    }
+
+    // ฟังก์ชันการดึงข้อมูลผู้ใช้
+    function fetchData() {
+      const username = document.getElementById('usernameInput').value;
+      if (!username) return alert('กรุณาใส่ชื่อผู้ใช้ TikTok');
+      
+      document.getElementById('loading').classList.remove('d-none');
+      document.getElementById('userInfo').classList.add('d-none');
+
+      // ดึงข้อมูลจาก API
+      fetch(`https://countik.com/api/exist/${username}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.sec_uid) {
+            sec_uid = data.sec_uid;
+            uniqueId = data.uniqueId;
+
+            // อัปเดตชื่อเล่นและลิงก์ชื่อผู้ใช้
+            document.getElementById('nickname').innerText = data.nickname;
+            document.getElementById('username').innerHTML = `<a href="https://www.tiktok.com/@${uniqueId}" target="_blank">@${uniqueId}</a>`;
+
+            // ดึงข้อมูลรายละเอียดเพิ่มเติม
+            fetchUserInfo(sec_uid);
+          } else {
+            alert('ไม่พบผู้ใช้');
+            document.getElementById('loading').classList.add('d-none');
+          }
+        })
+        .catch(error => {
+          alert('เกิดข้อผิดพลาดในการดึงข้อมูล');
+          console.error(error);
+          document.getElementById('loading').classList.add('d-none');
+        });
+    }
+
+    // ฟังก์ชันการดึงข้อมูลรายละเอียดผู้ใช้
+    function fetchUserInfo(sec_uid) {
+      fetch(`https://countik.com/api/userinfo?sec_user_id=${sec_uid}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // อัปเดตข้อมูลผู้ใช้
+            document.getElementById('avatar').src = data.avatarThumb;
+            animateValue(document.getElementById('followerCount'), parseInt(document.getElementById('followerCount').innerText), data.followerCount, 1000);
+            animateValue(document.getElementById('followingCount'), parseInt(document.getElementById('followingCount').innerText), data.followingCount, 1000);
+            animateValue(document.getElementById('heartCount'), parseInt(document.getElementById('heartCount').innerText), data.heartCount, 1000);
+            animateValue(document.getElementById('videoCount'), parseInt(document.getElementById('videoCount').innerText), data.videoCount, 1000);
+
+            document.getElementById('userInfo').classList.remove('d-none');
+            document.getElementById('loading').classList.add('d-none');
+
+            // เคลียร์ timer เก่า และเริ่มการอัปเดตใหม่ทุกๆ 5 วินาที
+            clearInterval(timer);
+            timer = setInterval(() => fetchUserInfo(sec_uid), 5000);
+          } else {
+            alert('เกิดข้อผิดพลาดในการดึงข้อมูลรายละเอียด');
+            document.getElementById('loading').classList.add('d-none');
+          }
+        })
+        .catch(error => {
+          alert('เกิดข้อผิดพลาดในการดึงข้อมูลรายละเอียด');
+          console.error(error);
+          document.getElementById('loading').classList.add('d-none');
+        });
+    }
+  </script>
+
+</body>
+</html>
