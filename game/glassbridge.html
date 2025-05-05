@@ -8,10 +8,10 @@
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar.min.js"></script>
   </head>
   <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;">
 
-      <!-- แสดงกระจกใน AR -->
-      <a-box position="0 0 -3" width="1" height="0.1" depth="1" color="#4CC3D9"></a-box>
+      <!-- แสดงกล่องกระจกใน AR -->
+      <a-box position="0 1 -2" width="1" height="0.1" depth="1" color="#4CC3D9"></a-box>
 
       <!-- กล้อง -->
       <a-entity camera></a-entity>
