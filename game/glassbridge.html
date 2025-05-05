@@ -2,83 +2,16 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <title>Glass Bridge AR</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://cdn.rawgit.com/jeromeetienne/ar.js/1.7.2/aframe/build/aframe-ar.min.js"></script>
+    <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.3.2/aframe/build/aframe-ar.min.js"></script>
   </head>
   <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam;">
-      
-      <!-- กล้องผู้เล่น -->
-      <a-entity id="player" camera position="0 1.6 0" look-controls></a-entity>
-
-      <!-- กระจกซ้าย -->
-      <a-box id="glass-left" position="-0.8 0 -3" depth="0.1" height="0.05" width="0.8" color="#4CC3D9"></a-box>
-
-      <!-- กระจกขวา -->
-      <a-box id="glass-right" position="0.8 0 -3" depth="0.1" height="0.05" width="0.8" color="#4CC3D9"></a-box>
-
+    <a-scene embedded arjs>
+      <a-marker preset="hiro">
+        <a-box position="0 0.5 0" depth="0.1" height="1" width="1" color="#4CC3D9"></a-box>
+      </a-marker>
+      <a-entity camera></a-entity>
     </a-scene>
-
-    <!-- ปุ่มเฉลย -->
-    <button onclick="revealAnswer()" style="position: absolute; top: 10px; left: 10px; z-index: 10;">เฉลย</button>
-
-    <script>
-      const correctPath = [0, 1, 0, 1, 1, 0, 0, 1, 0, 1]; // 0 = ซ้าย, 1 = ขวา (รวม 10 ขั้น)
-      const player = document.getElementById('player');
-      let currentStep = 0;
-
-      function checkStep() {
-        const playerPos = player.object3D.position;
-        const zStep = -3 - (currentStep * 2);
-
-        if (Math.abs(playerPos.z - zStep) < 0.5) {
-          const choice = playerPos.x < 0 ? 0 : 1;
-          const correct = correctPath[currentStep];
-
-          const glassId = choice === 0 ? 'glass-left' : 'glass-right';
-          document.getElementById(glassId).setAttribute('color', choice === correct ? '#4CAF50' : '#F44336');
-
-          currentStep++;
-          createNextStep();
-        }
-      }
-
-      function createNextStep() {
-        if (currentStep >= correctPath.length) return;
-
-        const zPos = -3 - (currentStep * 2);
-        const glassL = document.createElement('a-box');
-        const glassR = document.createElement('a-box');
-
-        glassL.setAttribute('position', `-0.8 0 ${zPos}`);
-        glassR.setAttribute('position', `0.8 0 ${zPos}`);
-        glassL.setAttribute('width', '0.8');
-        glassR.setAttribute('width', '0.8');
-        glassL.setAttribute('height', '0.05');
-        glassR.setAttribute('height', '0.05');
-        glassL.setAttribute('depth', '0.1');
-        glassR.setAttribute('depth', '0.1');
-        glassL.setAttribute('color', '#4CC3D9');
-        glassR.setAttribute('color', '#4CC3D9');
-        glassL.setAttribute('id', 'glass-left');
-        glassR.setAttribute('id', 'glass-right');
-
-        document.querySelector('a-scene').appendChild(glassL);
-        document.querySelector('a-scene').appendChild(glassR);
-      }
-
-      function revealAnswer() {
-        correctPath.forEach((v, i) => {
-          const z = -3 - (i * 2);
-          const id = v === 0 ? 'glass-left' : 'glass-right';
-          const glass = document.querySelector(`[position*="${z}"]#${id}`);
-          if (glass) {
-            glass.setAttribute('color', '#4CAF50');
-          }
-        });
-      }
-
-      setInterval(checkStep, 1000);
-    </script>
   </body>
 </html>
