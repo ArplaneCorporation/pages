@@ -2,21 +2,34 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Markerless AR</title>
+    <title>WebXR AR Glass Bridge</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar-nft.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-ar-hit-test@1.0.0/dist/aframe-ar-hit-test.min.js"></script>
   </head>
   <body style="margin: 0; overflow: hidden;">
     <a-scene
-      vr-mode-ui="enabled: false"
+      webxr="optionalFeatures: hit-test; requiredFeatures: hit-test;"
+      renderer="antialias: true; colorManagement: true;"
+      xrweb="overlayElement: #overlay"
+      ar-hit-test="enabled: true"
       embedded
-      arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: true"
     >
-      <!-- วัตถุแสดงทันที -->
-      <a-entity position="0 0 -2">
-        <a-box width="1" height="0.1" depth="1" color="#4CC3D9"></a-box>
-      </a-entity>
+      <!-- กล่องกระจก (แสดงเมื่อพบพื้นผิว) -->
+      <a-box
+        id="glass"
+        visible="false"
+        position="0 0 0"
+        width="1"
+        height="0.1"
+        depth="1"
+        color="#4CC3D9"
+        ar-hit-test-target
+      ></a-box>
 
+      <!-- กล้อง -->
       <a-entity camera></a-entity>
     </a-scene>
   </body>
