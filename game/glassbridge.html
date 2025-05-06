@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8">
     <title>Glass Bridge AR</title>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.4.2/aframe/build/aframe-ar.min.js"></script>
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <!-- AR.js -->
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
   </head>
-  <body style="margin:0; overflow:hidden;">
+  <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs>
-      <!-- Marker -->
-      <a-marker preset="hiro">
-        <!-- กระจกซ้าย -->
-        <a-plane id="left" position="-0.3 0 0" rotation="-90 0 0" width="0.3" height="0.3" color="#CCC"></a-plane>
-        <!-- กระจกขวา -->
-        <a-plane id="right" position="0.3 0 0" rotation="-90 0 0" width="0.3" height="0.3" color="#CCC"></a-plane>
-      </a-marker>
-
       <!-- กล้อง -->
       <a-entity camera></a-entity>
+
+      <!-- Marker แบบ Hiro -->
+      <a-marker preset="hiro">
+        <!-- แผ่นกระจกซ้าย -->
+        <a-plane id="left" position="-0.3 0 0" rotation="-90 0 0" width="0.3" height="0.3" color="#CCCCCC"></a-plane>
+        <!-- แผ่นกระจกขวา -->
+        <a-plane id="right" position="0.3 0 0" rotation="-90 0 0" width="0.3" height="0.3" color="#CCCCCC"></a-plane>
+      </a-marker>
     </a-scene>
 
     <button onclick="revealAnswer()" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; font-size: 18px;">
