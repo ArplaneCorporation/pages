@@ -1,17 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Location-Based AR</title>
+    <meta charset="utf-8" />
+    <title>Glass Bridge AR</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/location-based/aframe-location-based-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.min.js"></script>
   </head>
-  <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam; location: true;">
-      <!-- วัตถุ AR ที่จะปรากฏตามตำแหน่ง -->
-      <a-box position="0 0 0" color="green" scale="1 1 1" gps-entity-place="latitude: 13.7563; longitude: 100.5018;"></a-box>
+  <body style="margin:0; overflow:hidden;">
+    <a-scene embedded arjs>
+      <a-marker preset="hiro">
+        <!-- กล่องกระจกซ้าย -->
+        <a-box id="left" position="-0.4 0.05 0" depth="0.1" height="0.05" width="0.5" color="#CCC"></a-box>
+
+        <!-- กล่องกระจกขวา -->
+        <a-box id="right" position="0.4 0.05 0" depth="0.1" height="0.05" width="0.5" color="#CCC"></a-box>
+      </a-marker>
 
       <a-entity camera></a-entity>
     </a-scene>
@@ -24,11 +27,8 @@
       const correctSide = Math.random() < 0.5 ? 'left' : 'right';
 
       function revealAnswer() {
-        const left = document.getElementById('left');
-        const right = document.getElementById('right');
-        
-        left.setAttribute('color', correctSide === 'left' ? 'green' : 'red');
-        right.setAttribute('color', correctSide === 'right' ? 'green' : 'red');
+        document.getElementById('left').setAttribute('color', correctSide === 'left' ? 'green' : 'red');
+        document.getElementById('right').setAttribute('color', correctSide === 'right' ? 'green' : 'red');
       }
     </script>
   </body>
