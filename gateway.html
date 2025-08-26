@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Link System with Gemini AI</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts for Thai characters -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .form-input {
+            @apply w-full px-4 py-3 text-gray-800 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200;
+        }
+        .form-label {
+            @apply block mb-2 text-sm font-semibold text-gray-700;
+        }
+        .btn {
+            @apply w-full flex justify-center items-center px-4 py-3 font-bold text-white rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-wait;
+        }
+        .btn-primary { @apply bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500; }
+        .btn-secondary { @apply bg-slate-500 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500; }
+        .btn-success { @apply bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500; }
+        .card { @apply bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-lg mx-auto; }
+        .hidden-view { display: none; }
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: #ffffff; animation: spin 1s ease infinite; }
+        .spinner-sm { border: 2px solid rgba(0, 0, 0, 0.1); width: 16px; height: 16px; border-radius: 50%; border-left-color: currentColor; animation: spin 1s ease infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- =================================================================== -->
+    <!-- View 1: Creator Page (Default View)                             -->
+    <!-- =================================================================== -->
+    <div id="creator-view" class="hidden-view">
+        <div class="card">
+            <header class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-900">สร้างลิงก์ชำระเงิน</h1>
+                <p class="mt-2 text-gray-600">กรอกข้อมูลเพื่อสร้างลิงก์สำหรับส่งให้ลูกค้า</p>
+            </header>
+            <form id="creator-form" class="space-y-6">
+                <div>
+                    <label for="creator-api-key" class="form-label">ProBanking API Key ของคุณ</label>
+                    <input type="password" id="creator-api-key" class="form-input" placeholder="PROB-xxx..." required>
+                </div>
+                <div>
+                    <label for="creator-amount" class="form-label">ยอดชำระ (บาท)</label>
+                    <input type="number" id="creator-amount" class="form-input" placeholder="เช่น 500.00" step="0.01" required>
+                </div>
+                <div>
+                    <label for="creator-items" class="form-label">รายการสินค้า (คั่นด้วยลูกน้ำ ,)</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="creator-items" class="form-input" placeholder="เสื้อ, กางเกง" required>
+                        <!-- ✨ Gemini API Feature Button -->
+                        <button type="button" id="gemini-suggest-btn" class="p-3 bg-slate-100 hover:bg-slate-200 rounded-lg" title="✨ ช่วยคิดชื่อรายการสินค้า">
+                            <span id="gemini-btn-text">✨</span>
+                            <div id="gemini-spinner" class="spinner-sm text-indigo-600 hidden"></div>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">สร้างลิงก์</button>
+            </form>
+            <div id="creator-results" class="mt-6 space-y-4 hidden">
+                <h3 class="font-bold text-lg text-center text-green-600">สร้างลิงก์สำเร็จ!</h3>
+                <div>
+                    <label class="form-label">1. ลิงก์สำหรับส่งให้ลูกค้าชำระเงิน:</label>
+                    <input type="text" id="payment-link-output" class="form-input bg-gray-100" readonly>
+                </div>
+                <div>
+                    <label class="form-label">2. ลิงก์สำหรับตรวจสอบสถานะ (เก็บไว้เอง):</label>
+                    <input type="text" id="status-link-output" class="form-input bg-gray-100" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- View 2: Payer Page                                              -->
+    <!-- =================================================================== -->
+    <div id="payer-view" class="hidden-view">
+        <div class="card">
+            <header class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-900">ชำระเงิน</h1>
+                <p class="mt-2 text-gray-600">กรุณาตรวจสอบข้อมูลและกรอกรายละเอียดผู้ชำระ</p>
+            </header>
+            <div class="bg-indigo-50 rounded-lg p-4 mb-6 text-center">
+                <p class="text-sm text-indigo-700">ยอดที่ต้องชำระ</p>
+                <p id="payer-amount" class="text-4xl font-bold text-indigo-900"></p>
+                <p class="text-sm text-gray-600 mt-2">รายการ:</p>
+                <p id="payer-items" class="text-sm text-gray-800 font-medium"></p>
+            </div>
+            <form id="payer-form" class="space-y-6">
+                <div>
+                    <label for="payer-info" class="form-label">อีเมล หรือ เลขบัญชีของคุณ</label>
+                    <input type="text" id="payer-info" class="form-input" placeholder="กรอกข้อมูลเพื่ออ้างอิง" required>
+                </div>
+                <button type="submit" id="payer-submit-btn" class="btn btn-success">
+                    <span id="payer-btn-text">ดำเนินการต่อเพื่อชำระเงิน</span>
+                    <div id="payer-spinner" class="spinner hidden"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- View 3: Status Page                                             -->
+    <!-- =================================================================== -->
+    <div id="status-view" class="hidden-view">
+        <div class="card">
+            <header class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-900">ตรวจสอบสถานะ</h1>
+                <p class="mt-2 text-gray-600">ดูประวัติธุรกรรมล่าสุดเพื่อตรวจสอบการชำระเงิน</p>
+            </header>
+            <button id="status-check-btn" class="btn btn-primary">
+                <span id="status-btn-text">ดึงประวัติธุรกรรมล่าสุด</span>
+                <div id="status-spinner" class="spinner hidden"></div>
+            </button>
+            <div id="status-results" class="mt-6">
+                <!-- History will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PROBANKING_BASE_URL = 'https://script.google.com/macros/s/AKfycbzpFPL_VmLheO6THMmNqoWEXidDSUXY_UqaGZXMDgzoxRag1JM1RNeXlqEn7fKyEueG/exec';
+
+        // --- Simple Router ---
+        function router() {
+            const hash = window.location.hash;
+            document.getElementById('creator-view').style.display = 'none';
+            document.getElementById('payer-view').style.display = 'none';
+            document.getElementById('status-view').style.display = 'none';
+
+            if (hash.startsWith('#pay/')) {
+                document.getElementById('payer-view').style.display = 'block';
+                initPayerPage(hash);
+            } else if (hash.startsWith('#status/')) {
+                document.getElementById('status-view').style.display = 'block';
+                initStatusPage(hash);
+            } else {
+                document.getElementById('creator-view').style.display = 'block';
+            }
+        }
+
+        // --- Creator Page Logic ---
+        const creatorForm = document.getElementById('creator-form');
+        creatorForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const apiKey = document.getElementById('creator-api-key').value;
+            const amount = document.getElementById('creator-amount').value;
+            const items = document.getElementById('creator-items').value;
+
+            const paymentData = { amount: amount, items: items, apiKey: apiKey };
+            const encodedPaymentData = btoa(JSON.stringify(paymentData));
+            const encodedStatusData = btoa(JSON.stringify({ apiKey: apiKey }));
+
+            const baseUrl = window.location.href.split('#')[0];
+            const paymentLink = `${baseUrl}#pay/${encodedPaymentData}`;
+            const statusLink = `${baseUrl}#status/${encodedStatusData}`;
+
+            document.getElementById('payment-link-output').value = paymentLink;
+            document.getElementById('status-link-output').value = statusLink;
+            document.getElementById('creator-results').classList.remove('hidden');
+        });
+
+        // --- ✨ Gemini API Feature Logic ---
+        const geminiSuggestBtn = document.getElementById('gemini-suggest-btn');
+        const creatorItemsInput = document.getElementById('creator-items');
+        geminiSuggestBtn.addEventListener('click', async () => {
+            const currentItems = creatorItemsInput.value;
+            if (!currentItems) {
+                alert('กรุณากรอกรายการสินค้าก่อน');
+                return;
+            }
+
+            setGeminiLoading(true);
+
+            try {
+                const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
+                
+                const prompt = `You are a creative marketing assistant for a Thai online shop. Take the following comma-separated list of items and turn it into a short, appealing, and friendly description for an invoice, in Thai. Keep it under 15 words and sound natural. Items: "${currentItems}"`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }]
+                };
+
+                const response = await fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Gemini API error! Status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (generatedText) {
+                    // Clean up the response, removing quotes if any
+                    creatorItemsInput.value = generatedText.replace(/"/g, '').trim();
+                } else {
+                    throw new Error('No content received from Gemini API.');
+                }
+
+            } catch (error) {
+                console.error("Gemini API call failed:", error);
+                alert("เกิดข้อผิดพลาดในการเรียกใช้ AI Suggestion");
+            } finally {
+                setGeminiLoading(false);
+            }
+        });
+        
+        function setGeminiLoading(isLoading) {
+            geminiSuggestBtn.disabled = isLoading;
+            document.getElementById('gemini-btn-text').classList.toggle('hidden', isLoading);
+            document.getElementById('gemini-spinner').classList.toggle('hidden', !isLoading);
+        }
+
+
+        // --- Payer Page Logic ---
+        function initPayerPage(hash) {
+            try {
+                const encodedData = hash.split('/')[1];
+                const data = JSON.parse(atob(encodedData));
+                
+                document.getElementById('payer-amount').textContent = `฿${parseFloat(data.amount).toFixed(2)}`;
+                document.getElementById('payer-items').textContent = data.items;
+                
+                const payerForm = document.getElementById('payer-form');
+                payerForm.onsubmit = (e) => {
+                    e.preventDefault();
+                    const payerInfo = document.getElementById('payer-info').value;
+                    
+                    setLoading('payer', true);
+
+                    const itemsArray = data.items.split(',').map(item => item.trim());
+                    const dueDate = new Date();
+                    dueDate.setDate(dueDate.getDate() + 1);
+                    const formattedDueDate = dueDate.toISOString().split('T')[0];
+
+                    const params = new URLSearchParams({
+                        action: 'createInvoice',
+                        apiKey: data.apiKey,
+                        customer: payerInfo,
+                        amount: data.amount,
+                        items: JSON.stringify(itemsArray),
+                        dueDate: formattedDueDate
+                    });
+
+                    const finalUrl = `${PROBANKING_BASE_URL}?${params.toString()}`;
+                    
+                    setTimeout(() => {
+                        window.location.href = finalUrl;
+                    }, 1000);
+                };
+            } catch (error) {
+                document.getElementById('payer-view').innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์ชำระเงินไม่ถูกต้อง</div>`;
+            }
+        }
+
+        // --- Status Page Logic ---
+        function initStatusPage(hash) {
+            try {
+                const encodedData = hash.split('/')[1];
+                const data = JSON.parse(atob(encodedData));
+                const apiKey = data.apiKey;
+
+                const checkBtn = document.getElementById('status-check-btn');
+                checkBtn.onclick = async () => {
+                    setLoading('status', true);
+                    const statusResultsDiv = document.getElementById('status-results');
+                    statusResultsDiv.innerHTML = `<p class="text-center">กำลังดึงข้อมูล...</p>`;
+
+                    try {
+                        const params = new URLSearchParams({ action: 'getHistory', apiKey: apiKey, limit: 20 });
+                        const response = await fetch(`${PROBANKING_BASE_URL}?${params.toString()}`);
+                        
+                        if (!response.ok) {
+                           throw new Error(`API Error: ${response.statusText}`);
+                        }
+
+                        // Assuming API returns JSON array like [{date, amount, status, customer}]
+                        const history = await response.json(); 
+
+                        if (history && history.length > 0) {
+                            let tableHTML = `<div class="overflow-x-auto"><table class="min-w-full bg-white border"><thead><tr class="w-full bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"><th class="py-3 px-4">วันที่</th><th class="py-3 px-4">ยอดเงิน</th><th class="py-3 px-4">ผู้ชำระ</th><th class="py-3 px-4">สถานะ</th></tr></thead><tbody class="text-gray-700">`;
+                            history.forEach(tx => {
+                                tableHTML += `<tr><td class="py-3 px-4 border-b">${new Date(tx.date).toLocaleString()}</td><td class="py-3 px-4 border-b">${tx.amount}</td><td class="py-3 px-4 border-b">${tx.customer || 'N/A'}</td><td class="py-3 px-4 border-b">${tx.status}</td></tr>`;
+                            });
+                            tableHTML += `</tbody></table></div>`;
+                            statusResultsDiv.innerHTML = tableHTML;
+                        } else {
+                            statusResultsDiv.innerHTML = `<p class="text-center text-gray-500">ไม่พบประวัติธุรกรรม</p>`;
+                        }
+                    } catch (err) {
+                        statusResultsDiv.innerHTML = `<p class="text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบ API Key</p>`;
+                    } finally {
+                        setLoading('status', false);
+                    }
+                };
+            } catch (error) {
+                 document.getElementById('status-view').innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์ตรวจสอบสถานะไม่ถูกต้อง</div>`;
+            }
+        }
+        
+        function setLoading(page, isLoading) {
+            const btn = document.getElementById(`${page}-submit-btn`) || document.getElementById(`${page}-check-btn`);
+            const text = document.getElementById(`${page}-btn-text`);
+            const spinner = document.getElementById(`${page}-spinner`);
+            if(btn) {
+                btn.disabled = isLoading;
+                text.classList.toggle('hidden', isLoading);
+                spinner.classList.toggle('hidden', !isLoading);
+            }
+        }
+
+        // --- Initial Load ---
+        window.addEventListener('hashchange', router);
+        window.addEventListener('load', router);
+    </script>
+</body>
+</html>
