@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Link System with Gemini AI</title>
+    <title>Content Locker Payment System</title>
     
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,16 +29,12 @@
             @apply w-full flex justify-center items-center px-4 py-3 font-bold text-white rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-wait;
         }
         .btn-primary { @apply bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500; }
-        .btn-secondary { @apply bg-slate-500 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500; }
         .btn-success { @apply bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500; }
         .card { @apply bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-lg mx-auto; }
         .hidden-view { display: none; }
-        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: #ffffff; animation: spin 1s ease infinite; }
-        .spinner-sm { border: 2px solid rgba(0, 0, 0, 0.1); width: 16px; height: 16px; border-radius: 50%; border-left-color: currentColor; animation: spin 1s ease infinite; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); width: 24px; height: 24px; border-radius: 50%; border-top-color: #ffffff; animation: spin 1s ease infinite; }
+        .spinner-dark { border: 4px solid rgba(0, 0, 0, 0.1); width: 48px; height: 48px; border-radius: 50%; border-top-color: #4f46e5; animation: spin 1s ease infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Styles for Gemini Analysis Card */
-        #gemini-analysis-card ul { list-style-position: inside; margin-left: 8px; }
-        #gemini-analysis-card li { margin-bottom: 4px; }
     </style>
 </head>
 <body class="p-4">
@@ -49,30 +45,32 @@
     <div id="creator-view" class="hidden-view">
         <div class="card">
             <header class="text-center mb-6">
-                <h1 class="text-3xl font-bold text-gray-900">สร้างลิงก์ชำระเงิน</h1>
-                <p class="mt-2 text-gray-600">กรอกข้อมูลเพื่อสร้างลิงก์สำหรับส่งให้ลูกค้า</p>
+                <h1 class="text-3xl font-bold text-gray-900">สร้างลิงก์ปลดล็อกเนื้อหา</h1>
+                <p class="mt-2 text-gray-600">สร้างลิงก์สำหรับขายไฟล์หรือข้อความพิเศษ</p>
             </header>
             <form id="creator-form" class="space-y-6">
                 <div>
                     <label for="creator-api-key" class="form-label">ProBanking API Key ของคุณ</label>
                     <input type="password" id="creator-api-key" class="form-input" placeholder="PROB-xxx..." required>
                 </div>
-                <div>
-                    <label for="creator-amount" class="form-label">ยอดชำระ (บาท)</label>
-                    <input type="number" id="creator-amount" class="form-input" placeholder="เช่น 500.00" step="0.01" required>
+                 <div>
+                    <label for="creator-webhook-url" class="form-label">Webhook URL สำหรับแจ้งเตือน (ไม่บังคับ)</label>
+                    <input type="url" id="creator-webhook-url" class="form-input" placeholder="https://maker.ifttt.com/...">
                 </div>
                 <div>
-                    <label for="creator-items" class="form-label">รายการสินค้า (คั่นด้วยลูกน้ำ ,)</label>
-                    <div class="flex items-center space-x-2">
-                        <input type="text" id="creator-items" class="form-input" placeholder="เสื้อ, กางเกง" required>
-                        <button type="button" id="gemini-suggest-btn" class="p-3 bg-slate-100 hover:bg-slate-200 rounded-lg" title="✨ ช่วยคิดชื่อรายการสินค้า">
-                            <span id="gemini-btn-text">✨</span>
-                            <div id="gemini-spinner" class="spinner-sm text-indigo-600 hidden"></div>
-                        </button>
-                    </div>
+                    <label for="creator-amount" class="form-label">ราคา (บาท)</label>
+                    <input type="number" id="creator-amount" class="form-input" placeholder="เช่น 99.00" step="0.01" required>
+                </div>
+                <div>
+                    <label for="creator-items" class="form-label">ชื่อสินค้า/บริการ</label>
+                    <input type="text" id="creator-items" class="form-input" placeholder="เช่น E-Book 'คู่มือการตลาดออนไลน์'" required>
+                </div>
+                 <div>
+                    <label for="creator-content" class="form-label">เนื้อหาที่ต้องการล็อก (ข้อความ หรือ URL)</label>
+                    <textarea id="creator-content" class="form-input" rows="4" placeholder="ใส่ข้อความลับ, โค้ด, หรือลิงก์ดาวน์โหลดไฟล์ที่นี่" required></textarea>
                 </div>
                 <button type="submit" id="creator-submit-btn" class="btn btn-primary">
-                    <span id="creator-btn-text">สร้างลิงก์</span>
+                    <span id="creator-btn-text">สร้างลิงก์ปลดล็อก</span>
                     <div id="creator-spinner" class="spinner hidden"></div>
                 </button>
                 <div id="creator-error-message" class="text-sm text-center text-red-600 h-5"></div>
@@ -80,98 +78,78 @@
             <div id="creator-results" class="mt-6 space-y-4 hidden">
                 <h3 class="font-bold text-lg text-center text-green-600">สร้างลิงก์สำเร็จ!</h3>
                 <div>
-                    <label class="form-label">1. ลิงก์สำหรับส่งให้ลูกค้าชำระเงิน:</label>
-                    <input type="text" id="payment-link-output" class="form-input bg-gray-100" readonly>
-                </div>
-                <div>
-                    <label class="form-label">2. ลิงก์สำหรับตรวจสอบสถานะ (เก็บไว้เอง):</label>
-                    <input type="text" id="status-link-output" class="form-input bg-gray-100" readonly>
+                    <label class="form-label">ส่งลิงก์นี้ให้ลูกค้าของคุณ:</label>
+                    <input type="text" id="unlock-link-output" class="form-input bg-gray-100" readonly>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- =================================================================== -->
-    <!-- View 2: Payer Page                                              -->
+    <!-- View 2: Unlock Page (for the customer)                          -->
     <!-- =================================================================== -->
-    <div id="payer-view" class="hidden-view">
+    <div id="unlock-view" class="hidden-view">
         <div class="card">
+            <!-- Step 1: Payer Info Form -->
             <div id="payer-form-container">
                 <header class="text-center mb-6">
-                    <h1 class="text-3xl font-bold text-gray-900">ยืนยันการชำระเงิน</h1>
-                    <p class="mt-2 text-gray-600">กรุณาตรวจสอบข้อมูลและกรอกรายละเอียดผู้ชำระ</p>
+                    <h1 class="text-3xl font-bold text-gray-900">ปลดล็อกเนื้อหา</h1>
+                    <p class="mt-2 text-gray-600">ชำระเงินเพื่อเข้าถึงเนื้อหาพิเศษ</p>
                 </header>
                 <div class="bg-indigo-50 rounded-lg p-4 mb-6 text-center">
                     <p class="text-sm text-indigo-700">ยอดที่ต้องชำระ</p>
                     <p id="payer-amount" class="text-4xl font-bold text-indigo-900"></p>
-                    <p class="text-sm text-gray-600 mt-2">รายการ:</p>
+                    <p class="text-sm text-gray-600 mt-2">สำหรับ:</p>
                     <p id="payer-items" class="text-sm text-gray-800 font-medium"></p>
                 </div>
                 <form id="payer-form" class="space-y-6">
                     <div>
-                        <label for="payer-info" class="form-label">อีเมล หรือ เลขบัญชีของคุณ</label>
-                        <input type="text" id="payer-info" class="form-input" placeholder="กรอกข้อมูลเพื่อรับใบแจ้งหนี้" required>
+                        <label for="payer-info" class="form-label">อีเมลของคุณ (สำหรับรับใบแจ้งหนี้)</label>
+                        <input type="email" id="payer-info" class="form-input" placeholder="customer@example.com" required>
                     </div>
                     <button type="submit" id="payer-submit-btn" class="btn btn-success">
-                        <span id="payer-btn-text">ยืนยันและสร้างใบแจ้งหนี้</span>
+                        <span id="payer-btn-text">ดำเนินการต่อ</span>
                         <div id="payer-spinner" class="spinner hidden"></div>
                     </button>
                     <div id="payer-error-message" class="text-sm text-center text-red-600 h-5"></div>
                 </form>
             </div>
-            <div id="payer-success-message" class="hidden-view text-center">
+
+            <!-- Step 2: Waiting for Payment -->
+            <div id="waiting-container" class="hidden-view text-center">
+                <div class="spinner-dark mx-auto"></div>
+                <h1 class="mt-6 text-2xl font-bold text-gray-900">กำลังรอการชำระเงิน...</h1>
+                <p class="mt-2 text-gray-600">ระบบได้ส่งใบแจ้งหนี้ไปที่ <strong id="waiting-payer-info"></strong> แล้ว</p>
+                <p class="mt-1 text-gray-600">กรุณาชำระเงิน จากนั้นหน้านี้จะปลดล็อกเนื้อหาให้โดยอัตโนมัติ</p>
+                <div class="mt-4 text-xs text-gray-400">หน้านี้กำลังตรวจสอบสถานะทุก 10 วินาที</div>
+            </div>
+
+            <!-- Step 3: Content Unlocked -->
+            <div id="unlocked-container" class="hidden-view text-center">
                  <svg class="mx-auto h-16 w-16 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <h1 class="mt-4 text-3xl font-bold text-gray-900">สร้างใบแจ้งหนี้สำเร็จ</h1>
-                <p class="mt-2 text-gray-600">เราได้ส่งใบแจ้งหนี้ไปยัง <strong id="success-payer-info"></strong> แล้ว กรุณาตรวจสอบและชำระเงินตามรายละเอียดในใบแจ้งหนี้</p>
+                <h1 class="mt-4 text-3xl font-bold text-gray-900">ชำระเงินสำเร็จ!</h1>
+                <p class="mt-2 text-gray-600">นี่คือเนื้อหาของคุณ:</p>
+                <div id="unlocked-content" class="mt-4 p-4 bg-slate-100 rounded-lg text-left text-gray-800 whitespace-pre-wrap break-words"></div>
             </div>
         </div>
     </div>
 
-    <!-- =================================================================== -->
-    <!-- View 3: Status Page                                             -->
-    <!-- =================================================================== -->
-    <div id="status-view" class="hidden-view">
-        <div class="card">
-            <header class="text-center mb-6">
-                <h1 class="text-3xl font-bold text-gray-900">ตรวจสอบสถานะ</h1>
-                <p class="mt-2 text-gray-600">ดูประวัติธุรกรรมล่าสุดเพื่อตรวจสอบการชำระเงิน</p>
-            </header>
-            <div class="flex space-x-2">
-                <button id="status-check-btn" class="btn btn-primary">
-                    <span id="status-btn-text">ดึงประวัติธุรกรรม</span>
-                    <div id="status-spinner" class="spinner hidden"></div>
-                </button>
-                <button id="gemini-analyze-btn" class="btn btn-secondary hidden w-auto px-4">
-                     <span id="analyze-btn-text">✨ สรุปและวิเคราะห์ด้วย AI</span>
-                     <div id="analyze-spinner" class="spinner hidden"></div>
-                </button>
-            </div>
-            <div id="gemini-analysis-card" class="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200 text-sm text-indigo-900 hidden"></div>
-            <div id="status-results" class="mt-6">
-                <!-- History will be rendered here -->
-            </div>
-        </div>
-    </div>
 
     <script>
         const PROBANKING_BASE_URL = 'https://script.google.com/macros/s/AKfycbzpFPL_VmLheO6THMmNqoWEXidDSUXY_UqaGZXMDgzoxRag1JM1RNeXlqEn7fKyEueG/exec';
-        let transactionHistoryCache = []; // Cache for transaction data
+        let pollingInterval; // To store the setInterval ID
 
         // --- Simple Router ---
         function router() {
             const hash = window.location.hash;
             document.getElementById('creator-view').style.display = 'none';
-            document.getElementById('payer-view').style.display = 'none';
-            document.getElementById('status-view').style.display = 'none';
+            document.getElementById('unlock-view').style.display = 'none';
 
-            if (hash.startsWith('#pay/')) {
-                document.getElementById('payer-view').style.display = 'block';
-                initPayerPage(hash);
-            } else if (hash.startsWith('#status/')) {
-                document.getElementById('status-view').style.display = 'block';
-                initStatusPage(hash);
+            if (hash.startsWith('#unlock/')) {
+                document.getElementById('unlock-view').style.display = 'block';
+                initUnlockPage(hash);
             } else {
                 document.getElementById('creator-view').style.display = 'block';
             }
@@ -182,26 +160,25 @@
         creatorForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const errorDiv = document.getElementById('creator-error-message');
-            const resultsDiv = document.getElementById('creator-results');
             errorDiv.textContent = '';
-            resultsDiv.classList.add('hidden');
             setLoading('creator', true);
             
             setTimeout(() => {
                 try {
-                    const apiKey = document.getElementById('creator-api-key').value;
-                    const amount = document.getElementById('creator-amount').value;
-                    const items = document.getElementById('creator-items').value;
-                    if (!apiKey || !amount || !items) throw new Error("กรุณากรอกข้อมูลให้ครบทุกช่อง");
-                    const paymentData = { amount: amount, items: items, apiKey: apiKey };
-                    const encodedPaymentData = btoa(JSON.stringify(paymentData));
-                    const encodedStatusData = btoa(JSON.stringify({ apiKey: apiKey }));
-                    const baseUrl = window.location.href.split('#')[0];
-                    const paymentLink = `${baseUrl}#pay/${encodedPaymentData}`;
-                    const statusLink = `${baseUrl}#status/${encodedStatusData}`;
-                    document.getElementById('payment-link-output').value = paymentLink;
-                    document.getElementById('status-link-output').value = statusLink;
-                    resultsDiv.classList.remove('hidden');
+                    const data = {
+                        apiKey: document.getElementById('creator-api-key').value,
+                        webhook: document.getElementById('creator-webhook-url').value,
+                        amount: document.getElementById('creator-amount').value,
+                        items: document.getElementById('creator-items').value,
+                        content: document.getElementById('creator-content').value,
+                    };
+                    if (!data.apiKey || !data.amount || !data.items || !data.content) {
+                        throw new Error("กรุณากรอกข้อมูลที่จำเป็นให้ครบ");
+                    }
+                    const encodedData = btoa(JSON.stringify(data));
+                    const unlockLink = `${window.location.href.split('#')[0]}#unlock/${encodedData}`;
+                    document.getElementById('unlock-link-output').value = unlockLink;
+                    document.getElementById('creator-results').classList.remove('hidden');
                 } catch (error) {
                     errorDiv.textContent = error.message;
                 } finally {
@@ -210,191 +187,132 @@
             }, 100);
         });
 
-        // --- Gemini Suggestion Logic ---
-        const geminiSuggestBtn = document.getElementById('gemini-suggest-btn');
-        geminiSuggestBtn.addEventListener('click', async () => {
-            // ... (same as previous version)
-        });
-        
-        // --- Payer Page Logic ---
-        function initPayerPage(hash) {
+        // --- Unlock Page Logic ---
+        function initUnlockPage(hash) {
             try {
                 const encodedData = hash.split('/')[1];
                 const data = JSON.parse(atob(encodedData));
+                
+                // Populate initial form
                 document.getElementById('payer-amount').textContent = `฿${parseFloat(data.amount).toFixed(2)}`;
                 document.getElementById('payer-items').textContent = data.items;
+                
                 const payerForm = document.getElementById('payer-form');
-                const errorDiv = document.getElementById('payer-error-message');
-
                 payerForm.onsubmit = async (e) => {
                     e.preventDefault();
-                    errorDiv.textContent = '';
                     setLoading('payer', true);
-
+                    const payerInfo = document.getElementById('payer-info').value;
                     try {
-                        const payerInfo = document.getElementById('payer-info').value;
-                        if (!payerInfo) throw new Error("กรุณากรอกอีเมลหรือเลขบัญชี");
-
-                        // Call createInvoice API in the background
-                        const itemsArray = data.items.split(',').map(item => item.trim());
-                        const dueDate = new Date();
-                        dueDate.setDate(dueDate.getDate() + 7);
-                        const formattedDueDate = dueDate.toISOString().split('T')[0];
-                        const createInvoiceParams = new URLSearchParams({
-                            action: 'createInvoice', apiKey: data.apiKey, customer: payerInfo,
-                            amount: data.amount, items: JSON.stringify(itemsArray), dueDate: formattedDueDate
-                        });
+                        // Create Invoice
+                        const invoiceId = await createInvoice(data, payerInfo);
                         
-                        const createResponse = await fetch(`${PROBANKING_BASE_URL}?${createInvoiceParams.toString()}`);
-                        if (!createResponse.ok) {
-                           throw new Error("ไม่สามารถสร้างใบแจ้งหนี้ได้ กรุณาตรวจสอบข้อมูล");
-                        }
+                        // Switch to waiting view
+                        document.getElementById('payer-form-container').style.display = 'none';
+                        document.getElementById('waiting-payer-info').textContent = payerInfo;
+                        document.getElementById('waiting-container').style.display = 'block';
                         
-                        // Show success message
-                        document.getElementById('payer-form-container').classList.add('hidden');
-                        document.getElementById('success-payer-info').textContent = payerInfo;
-                        document.getElementById('payer-success-message').classList.remove('hidden-view');
-                        document.getElementById('payer-success-message').style.display = 'block';
-
+                        // Start polling for status
+                        startPolling(data, invoiceId);
 
                     } catch (error) {
-                        errorDiv.textContent = error.message;
+                        document.getElementById('payer-error-message').textContent = error.message;
                     } finally {
                         setLoading('payer', false);
                     }
                 };
             } catch (error) {
-                document.getElementById('payer-view').innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์ชำระเงินไม่ถูกต้อง</div>`;
+                document.getElementById('unlock-view').innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์ไม่ถูกต้อง</div>`;
             }
         }
 
-        // --- Status Page Logic ---
-        function initStatusPage(hash) {
-            try {
-                const encodedData = hash.split('/')[1];
-                const data = JSON.parse(atob(encodedData));
-                const apiKey = data.apiKey;
-                const checkBtn = document.getElementById('status-check-btn');
-                const analyzeBtn = document.getElementById('gemini-analyze-btn');
-                
-                checkBtn.onclick = async () => {
-                    setLoading('status', true);
-                    analyzeBtn.classList.add('hidden');
-                    document.getElementById('gemini-analysis-card').classList.add('hidden');
-                    const statusResultsDiv = document.getElementById('status-results');
-                    statusResultsDiv.innerHTML = `<p class="text-center">กำลังดึงข้อมูล...</p>`;
-                    try {
-                        const params = new URLSearchParams({ action: 'getHistory', apiKey: apiKey, limit: 20 });
-                        const response = await fetch(`${PROBANKING_BASE_URL}?${params.toString()}`);
-                        if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
-                        const history = await response.json();
-                        transactionHistoryCache = history;
-                        if (history && history.length > 0) {
-                            let tableHTML = `<div class="overflow-x-auto"><table class="min-w-full bg-white border"><thead><tr class="w-full bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"><th class="py-3 px-4">วันที่</th><th class="py-3 px-4">ยอดเงิน</th><th class="py-3 px-4">ผู้ชำระ</th><th class="py-3 px-4">สถานะ</th></tr></thead><tbody class="text-gray-700">`;
-                            history.forEach(tx => {
-                                tableHTML += `<tr><td class="py-3 px-4 border-b">${new Date(tx.date).toLocaleString()}</td><td class="py-3 px-4 border-b">${tx.amount}</td><td class="py-3 px-4 border-b">${tx.customer || 'N/A'}</td><td class="py-3 px-4 border-b">${tx.status}</td></tr>`;
-                            });
-                            tableHTML += `</tbody></table></div>`;
-                            statusResultsDiv.innerHTML = tableHTML;
-                            analyzeBtn.classList.remove('hidden');
-                        } else {
-                            statusResultsDiv.innerHTML = `<p class="text-center text-gray-500">ไม่พบประวัติธุรกรรม</p>`;
-                        }
-                    } catch (err) {
-                        statusResultsDiv.innerHTML = `<p class="text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบ API Key</p>`;
-                    } finally {
-                        setLoading('status', false);
+        async function createInvoice(data, payerInfo) {
+            const itemsArray = data.items.split(',').map(item => item.trim());
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 1);
+            const formattedDueDate = dueDate.toISOString().split('T')[0];
+            const params = new URLSearchParams({
+                action: 'createInvoice', apiKey: data.apiKey, customer: payerInfo,
+                amount: data.amount, items: JSON.stringify(itemsArray), dueDate: formattedDueDate
+            });
+            const response = await fetch(`${PROBANKING_BASE_URL}?${params.toString()}`);
+            if (!response.ok) throw new Error("ไม่สามารถสร้างใบแจ้งหนี้ได้");
+            
+            // SIMULATED: API should return { invoiceId: '...' }
+            // const responseData = await response.json();
+            // return responseData.invoiceId;
+            return 'INV' + Date.now(); // Simulated for this example
+        }
+
+        function startPolling(data, invoiceId) {
+            pollingInterval = setInterval(async () => {
+                try {
+                    const params = new URLSearchParams({ action: 'getInvoiceStatus', apiKey: data.apiKey, invoiceId: invoiceId });
+                    const response = await fetch(`${PROBANKING_BASE_URL}?${params.toString()}`);
+                    if (!response.ok) return; // Silently fail and retry later
+
+                    // SIMULATED: Real API would return { status: 'PAID' }. We simulate it.
+                    const statuses = ['PENDING', 'PENDING', 'PENDING', 'PAID'];
+                    const status = statuses[Math.floor(Math.random() * statuses.length)]; // Simulated
+                    // const responseData = await response.json();
+                    // const status = responseData.status.toUpperCase();
+
+                    if (status === 'PAID') {
+                        clearInterval(pollingInterval);
+                        showUnlockedContent(data);
+                        sendPushNotification(data);
+                    } else if (status === 'CANCELLED') {
+                        clearInterval(pollingInterval);
+                        // Show a cancelled message (optional)
                     }
-                };
+                } catch (error) {
+                    console.error("Polling error:", error);
+                }
+            }, 10000); // Poll every 10 seconds
+        }
 
-                analyzeBtn.onclick = async () => {
-                    // ... (same as previous version)
-                };
+        function showUnlockedContent(data) {
+            document.getElementById('waiting-container').style.display = 'none';
+            const unlockedContentDiv = document.getElementById('unlocked-content');
+            // Check if content is a URL
+            if (data.content.startsWith('http://') || data.content.startsWith('https://')) {
+                unlockedContentDiv.innerHTML = `ลิงก์ของคุณ: <a href="${data.content}" target="_blank" class="text-indigo-600 font-bold hover:underline">${data.content}</a>`;
+            } else {
+                unlockedContentDiv.textContent = data.content;
+            }
+            document.getElementById('unlocked-container').style.display = 'block';
+        }
 
+        async function sendPushNotification(data) {
+            if (!data.webhook) return;
+            try {
+                const payload = {
+                    value1: `ชำระเงินสำเร็จ!`,
+                    value2: `รายการ '${data.items}' จำนวน ${data.amount} บาท ได้รับการชำระเงินแล้ว`,
+                };
+                await fetch(data.webhook, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
             } catch (error) {
-                 document.getElementById('status-view').innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์ตรวจสอบสถานะไม่ถูกต้อง</div>`;
+                console.error("Webhook failed:", error);
             }
         }
         
         function setLoading(page, isLoading) {
-            const btn = document.getElementById(`${page}-submit-btn`) || document.getElementById(`${page}-check-btn`) || document.getElementById(`gemini-analyze-btn`);
-            const text = document.getElementById(`${page}-btn-text`) || document.getElementById('analyze-btn-text');
-            const spinner = document.getElementById(`${page}-spinner`) || document.getElementById('analyze-spinner');
+            const btn = document.getElementById(`${page}-submit-btn`);
+            const text = document.getElementById(`${page}-btn-text`);
+            const spinner = document.getElementById(`${page}-spinner`);
             if(btn) {
                 btn.disabled = isLoading;
-                if (text && spinner) {
-                    text.classList.toggle('hidden', isLoading);
-                    spinner.classList.toggle('hidden', !isLoading);
-                }
-            }
-        }
-        
-        function setGeminiLoading(type, isLoading) {
-            if (type === 'suggest') {
-                const btn = document.getElementById('gemini-suggest-btn');
-                btn.disabled = isLoading;
-                document.getElementById('gemini-btn-text').classList.toggle('hidden', isLoading);
-                document.getElementById('gemini-spinner').classList.toggle('hidden', !isLoading);
+                text.classList.toggle('hidden', isLoading);
+                spinner.classList.toggle('hidden', !isLoading);
             }
         }
 
         // --- Initial Load ---
         window.addEventListener('hashchange', router);
         window.addEventListener('load', router);
-
-        // --- Full, Unchanged Gemini Logic ---
-        geminiSuggestBtn.addEventListener('click', async () => {
-            const currentItems = document.getElementById('creator-items').value;
-            if (!currentItems) { alert('กรุณากรอกรายการสินค้าก่อน'); return; }
-            setGeminiLoading('suggest', true);
-            try {
-                const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
-                const prompt = `You are a creative marketing assistant for a Thai online shop. Take the following comma-separated list of items and turn it into a short, appealing, and friendly description for an invoice, in Thai. Keep it under 15 words and sound natural. Items: "${currentItems}"`;
-                const payload = { contents: [{ parts: [{ text: prompt }] }] };
-                const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`Gemini API error! Status: ${response.status}`);
-                const result = await response.json();
-                const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (generatedText) document.getElementById('creator-items').value = generatedText.replace(/"/g, '').trim();
-                else throw new Error('No content received from Gemini API.');
-            } catch (error) {
-                console.error("Gemini API call failed:", error);
-                alert("เกิดข้อผิดพลาดในการเรียกใช้ AI Suggestion");
-            } finally {
-                setGeminiLoading('suggest', false);
-            }
-        });
-
-        document.getElementById('gemini-analyze-btn').onclick = async () => {
-            if (transactionHistoryCache.length === 0) {
-                alert('กรุณาดึงประวัติธุรกรรมก่อน');
-                return;
-            }
-            setLoading('analyze', true);
-            const analysisCard = document.getElementById('gemini-analysis-card');
-            analysisCard.innerHTML = `<div class="flex items-center justify-center"><div class="spinner-sm text-indigo-600 mr-2"></div> กำลังวิเคราะห์ข้อมูล...</div>`;
-            analysisCard.classList.remove('hidden');
-            try {
-                const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
-                const prompt = `You are a helpful financial analyst for a Thai online shop. Based on this recent transaction history JSON data: ${JSON.stringify(transactionHistoryCache)}. Please provide a brief summary and useful insights in Thai. Your response must include: 1. Total successful payment amount (PAID status). 2. The count of successful vs. failed transactions. 3. One or two short, actionable observations. Format the response as simple HTML with <ul> and <li> tags for bullet points.`;
-                const payload = { contents: [{ parts: [{ text: prompt }] }] };
-                const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`Gemini API error! Status: ${response.status}`);
-                const result = await response.json();
-                const analysisText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (analysisText) {
-                    analysisCard.innerHTML = analysisText;
-                } else {
-                    throw new Error('No analysis content received from Gemini API.');
-                }
-            } catch(error) {
-                console.error("Gemini analysis failed:", error);
-                analysisCard.innerHTML = `<p class="text-red-600">เกิดข้อผิดพลาดในการวิเคราะห์ข้อมูล</p>`;
-            } finally {
-                setLoading('analyze', false);
-            }
-        };
-
     </script>
 </body>
 </html>
