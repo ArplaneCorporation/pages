@@ -13,9 +13,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- OTPAuth Library for 2FA -->
-    <script src="https://cdn.jsdelivr.net/npm/otpauth@9.2.2/dist/otpauth.umd.min.js"></script>
-
     <!-- Custom Styles -->
     <style>
         body {
@@ -65,8 +62,11 @@
                 </div>
                  <div>
                     <label for="creator-secret-key" class="form-label">รหัสลับสำหรับแอดมิน (สำหรับ 2FA)</label>
-                    <input type="text" id="creator-secret-key" class="form-input" placeholder="เช่น MYSECRETKEY123" required>
-                    <p class="text-xs text-gray-500 mt-1">ตั้งรหัสลับ (Base32) สำหรับใช้กับแอปฯ Authenticator</p>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="creator-secret-key" class="form-input" placeholder="คลิกปุ่มขวาเพื่อสุ่มสร้าง" required>
+                        <button type="button" id="generate-secret-btn" class="p-3 bg-slate-100 hover:bg-slate-200 rounded-lg" title="สุ่มสร้างรหัสลับ">🎲</button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">ต้องเป็น Base32 (A-Z, 2-7) แนะนำให้ใช้ 16 ตัวอักษร</p>
                 </div>
                  <div>
                     <label for="creator-webhook-url" class="form-label">Webhook URL สำหรับแจ้งเตือน (ไม่บังคับ)</label>
@@ -189,10 +189,8 @@
 
         // --- Simple Router ---
         function router() {
-            // Clear any running intervals when changing views
             if (pollingInterval) clearInterval(pollingInterval);
             if (countdownInterval) clearInterval(countdownInterval);
-
             const hash = window.location.hash;
             document.getElementById('creator-view').style.display = 'none';
             document.getElementById('unlock-view').style.display = 'none';
@@ -226,21 +224,14 @@
                         items: document.getElementById('creator-items').value,
                         content: document.getElementById('creator-content').value,
                     };
-                    if (!data.secretKey || !data.items || !data.content) {
-                        throw new Error("กรุณากรอก รหัสลับ, ชื่อสินค้า, และเนื้อหาให้ครบ");
-                    }
-                    if (data.amount && !data.apiKey) {
-                        throw new Error("กรุณากรอก API Key หากมีการตั้งราคา");
-                    }
+                    if (!data.secretKey || !data.items || !data.content) throw new Error("กรุณากรอก รหัสลับ, ชื่อสินค้า, และเนื้อหาให้ครบ");
+                    if (data.amount && !data.apiKey) throw new Error("กรุณากรอก API Key หากมีการตั้งราคา");
 
                     const baseUrl = window.location.href.split('#')[0];
-                    
-                    // Admin link data
                     const adminData = { content: data.content, secretKey: data.secretKey };
                     const encodedAdminData = btoa(JSON.stringify(adminData));
                     document.getElementById('admin-link-output').value = `${baseUrl}#admin/${encodedAdminData}`;
 
-                    // Payment link data (if amount is set)
                     const paymentLinkSection = document.getElementById('payment-link-section');
                     if (data.amount && data.apiKey) {
                         const paymentData = { apiKey: data.apiKey, webhook: data.webhook, amount: data.amount, items: data.items, content: data.content };
@@ -250,7 +241,6 @@
                     } else {
                         paymentLinkSection.style.display = 'none';
                     }
-
                     document.getElementById('creator-results').classList.remove('hidden');
                 } catch (error) {
                     errorDiv.textContent = error.message;
@@ -259,14 +249,21 @@
                 }
             }, 100);
         });
+        
+        document.getElementById('generate-secret-btn').addEventListener('click', () => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+            let result = '';
+            for (let i = 0; i < 16; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('creator-secret-key').value = result;
+        });
 
         // --- Unlock Page (Payment) Logic ---
-        function initUnlockPage(hash) {
-            // ... (same as previous version, no changes needed here)
-        }
+        function initUnlockPage(hash) { /* ... same as previous version ... */ }
         
         // --- Admin 2FA Unlock Page Logic ---
-        function initAdminPage(hash) {
+        async function initAdminPage(hash) {
             try {
                 const encodedData = hash.split('/')[1];
                 const data = JSON.parse(atob(encodedData));
@@ -276,34 +273,23 @@
                 const errorDiv = document.getElementById('admin-error-message');
                 const otpInput = document.getElementById('admin-otp');
 
-                const totp = new otpauth.TOTP({
-                    issuer: "ContentLocker",
-                    label: "AdminUnlock",
-                    algorithm: "SHA1",
-                    digits: 6,
-                    period: 30,
-                    secret: otpauth.Secret.fromBase32(secretKey),
-                });
-
-                adminForm.onsubmit = (e) => {
+                adminForm.onsubmit = async (e) => {
                     e.preventDefault();
                     errorDiv.textContent = '';
                     const token = otpInput.value;
-                    const delta = totp.validate({ token, window: 1 });
+                    const isValid = await verifyTOTP(token, secretKey);
 
-                    if (delta === null) {
+                    if (!isValid) {
                         errorDiv.textContent = "รหัสไม่ถูกต้อง กรุณาลองอีกครั้ง";
                     } else {
-                        // Success! Unlock content.
                         const unlockView = document.getElementById('unlock-view');
-                        unlockView.innerHTML = document.getElementById('admin-view').innerHTML; // Clone structure
+                        unlockView.innerHTML = document.getElementById('admin-view').innerHTML;
                         document.getElementById('admin-view').style.display = 'none';
                         unlockView.style.display = 'block';
                         showUnlockedContent(data, unlockView);
                     }
                 };
 
-                // Countdown Timer
                 const countdownBar = document.getElementById('countdown-bar');
                 const countdownText = document.getElementById('countdown-text');
                 countdownInterval = setInterval(() => {
@@ -317,42 +303,97 @@
             }
         }
 
-        // --- Shared Functions ---
+        // --- Native TOTP Implementation ---
+        async function verifyTOTP(token, secret) {
+            try {
+                // Check current, previous, and next time windows
+                for (let i = -1; i <= 1; i++) {
+                    const timeStep = Math.floor(Date.now() / 1000 / 30) + i;
+                    const generatedToken = await generateTOTP(secret, timeStep);
+                    if (generatedToken === token) {
+                        return true;
+                    }
+                }
+                return false;
+            } catch (e) {
+                console.error("TOTP verification error:", e);
+                return false;
+            }
+        }
+
+        async function generateTOTP(secret, timeStep) {
+            const key = base32toBuf(secret);
+            const timeStepBuf = new ArrayBuffer(8);
+            const timeStepView = new DataView(timeStepBuf);
+            // Time step must be a 64-bit integer, but JS handles 32-bit well.
+            // We write two 32-bit parts to simulate a 64-bit Big Endian integer.
+            timeStepView.setUint32(0, 0, false); // High 32 bits
+            timeStepView.setUint32(4, timeStep, false); // Low 32 bits
+
+            const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+            const hmacResult = await crypto.subtle.sign('HMAC', cryptoKey, timeStepBuf);
+            
+            const hmacBytes = new Uint8Array(hmacResult);
+            const offset = hmacBytes[hmacBytes.length - 1] & 0x0f;
+            const dataView = new DataView(hmacBytes.buffer, offset, 4);
+            let truncatedHash = dataView.getUint32(0, false);
+            truncatedHash &= 0x7fffffff; // Clear the most significant bit
+            const otp = truncatedHash % 1000000;
+            return otp.toString().padStart(6, '0');
+        }
+
+        function base32toBuf(base32) {
+            const base32chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+            let bits = '';
+            let buffer = new Uint8Array(Math.ceil(base32.length * 5 / 8));
+            for (let i = 0; i < base32.length; i++) {
+                const charIndex = base32chars.indexOf(base32[i]);
+                if (charIndex === -1) throw new Error('Invalid base32 character');
+                bits += charIndex.toString(2).padStart(5, '0');
+            }
+            for (let i = 0; i < buffer.length; i++) {
+                const byteBits = bits.substring(i * 8, (i + 1) * 8);
+                buffer[i] = parseInt(byteBits, 2);
+            }
+            return buffer;
+        }
+
+        // --- Shared & Unchanged Functions ---
+        function showUnlockedContent(data, viewContainer) { /* ... */ }
+        function createUnlockedContainer() { /* ... */ }
+        function setLoading(page, isLoading) { /* ... */ }
+        function initUnlockPage(hash) { /* ... */ }
+        async function createInvoice(data, payerInfo) { /* ... */ }
+        function startPolling(data, invoiceId) { /* ... */ }
+        async function sendPushNotification(data) { /* ... */ }
+
+        // --- Initial Load ---
+        window.addEventListener('hashchange', router);
+        window.addEventListener('load', router);
+        
+        // --- Pasting unchanged functions for completeness ---
         function showUnlockedContent(data, viewContainer = document.getElementById('unlock-view')) {
             const unlockedContainer = viewContainer.querySelector('#unlocked-container') || createUnlockedContainer();
             const unlockedContentDiv = unlockedContainer.querySelector('#unlocked-content');
-            
-            // Hide other containers inside the view
             const formContainer = viewContainer.querySelector('#payer-form-container') || viewContainer.querySelector('#admin-form');
             const waitingContainer = viewContainer.querySelector('#waiting-container');
             if(formContainer) formContainer.style.display = 'none';
             if(waitingContainer) waitingContainer.style.display = 'none';
-
             if (data.content.startsWith('http://') || data.content.startsWith('https://')) {
                 unlockedContentDiv.innerHTML = `ลิงก์ของคุณ: <a href="${data.content}" target="_blank" class="text-indigo-600 font-bold hover:underline">${data.content}</a>`;
             } else {
                 unlockedContentDiv.textContent = data.content;
             }
             unlockedContainer.style.display = 'block';
-            viewContainer.appendChild(unlockedContainer); // Ensure it's in the DOM
+            viewContainer.appendChild(unlockedContainer);
         }
-        
-        // Helper to create the unlocked container if it doesn't exist (for admin view)
         function createUnlockedContainer() {
             const container = document.createElement('div');
             container.id = 'unlocked-container';
             container.className = 'text-center';
-            container.innerHTML = `
-                <svg class="mx-auto h-16 w-16 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h1 class="mt-4 text-3xl font-bold text-gray-900">ปลดล็อกสำเร็จ!</h1>
-                <p class="mt-2 text-gray-600">นี่คือเนื้อหาของคุณ:</p>
-                <div id="unlocked-content" class="mt-4 p-4 bg-slate-100 rounded-lg text-left text-gray-800 whitespace-pre-wrap break-words"></div>
-            `;
+            container.innerHTML = `<svg class="mx-auto h-16 w-16 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><h1 class="mt-4 text-3xl font-bold text-gray-900">ปลดล็อกสำเร็จ!</h1><p class="mt-2 text-gray-600">นี่คือเนื้อหาของคุณ:</p><div id="unlocked-content" class="mt-4 p-4 bg-slate-100 rounded-lg text-left text-gray-800 whitespace-pre-wrap break-words"></div>`;
             return container;
         }
-
         function setLoading(page, isLoading) {
             const btn = document.getElementById(`${page}-submit-btn`);
             const text = document.getElementById(`${page}-btn-text`);
@@ -363,24 +404,16 @@
                 spinner.classList.toggle('hidden', !isLoading);
             }
         }
-        
-        // --- All other functions (createInvoice, startPolling, sendPushNotification, etc.) remain the same ---
-        // They are pasted here for completeness.
-
         async function createInvoice(data, payerInfo) {
             const itemsArray = data.items.split(',').map(item => item.trim());
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 1);
             const formattedDueDate = dueDate.toISOString().split('T')[0];
-            const params = new URLSearchParams({
-                action: 'createInvoice', apiKey: data.apiKey, customer: payerInfo,
-                amount: data.amount, items: JSON.stringify(itemsArray), dueDate: formattedDueDate
-            });
+            const params = new URLSearchParams({ action: 'createInvoice', apiKey: data.apiKey, customer: payerInfo, amount: data.amount, items: JSON.stringify(itemsArray), dueDate: formattedDueDate });
             const response = await fetch(`${PROBANKING_BASE_URL}?${params.toString()}`);
             if (!response.ok) throw new Error("ไม่สามารถสร้างใบแจ้งหนี้ได้");
-            return 'INV' + Date.now(); // Simulated
+            return 'INV' + Date.now();
         }
-
         function startPolling(data, invoiceId) {
             pollingInterval = setInterval(async () => {
                 try {
@@ -388,37 +421,48 @@
                     const response = await fetch(`${PROBANKING_BASE_URL}?${params.toString()}`);
                     if (!response.ok) return;
                     const statuses = ['PENDING', 'PENDING', 'PENDING', 'PAID'];
-                    const status = statuses[Math.floor(Math.random() * statuses.length)]; // Simulated
+                    const status = statuses[Math.floor(Math.random() * statuses.length)];
                     if (status === 'PAID') {
                         clearInterval(pollingInterval);
                         showUnlockedContent(data, document.getElementById('unlock-view'));
                         sendPushNotification(data);
                     }
-                } catch (error) {
-                    console.error("Polling error:", error);
-                }
+                } catch (error) { console.error("Polling error:", error); }
             }, 10000);
         }
-
         async function sendPushNotification(data) {
             if (!data.webhook) return;
             try {
-                await fetch(data.webhook, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        value1: `ชำระเงินสำเร็จ!`,
-                        value2: `รายการ '${data.items}' จำนวน ${data.amount} บาท ได้รับการชำreเงินแล้ว`,
-                    })
-                });
+                await fetch(data.webhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value1: `ชำระเงินสำเร็จ!`, value2: `รายการ '${data.items}' จำนวน ${data.amount} บาท ได้รับการชำระเงินแล้ว`, }) });
+            } catch (error) { console.error("Webhook failed:", error); }
+        }
+        function initUnlockPage(hash) {
+            try {
+                const encodedData = hash.split('/')[1];
+                const data = JSON.parse(atob(encodedData));
+                document.getElementById('payer-amount').textContent = `฿${parseFloat(data.amount).toFixed(2)}`;
+                document.getElementById('payer-items').textContent = data.items;
+                const payerForm = document.getElementById('payer-form');
+                payerForm.onsubmit = async (e) => {
+                    e.preventDefault();
+                    setLoading('payer', true);
+                    const payerInfo = document.getElementById('payer-info').value;
+                    try {
+                        const invoiceId = await createInvoice(data, payerInfo);
+                        document.getElementById('payer-form-container').style.display = 'none';
+                        document.getElementById('waiting-payer-info').textContent = payerInfo;
+                        document.getElementById('waiting-container').style.display = 'block';
+                        startPolling(data, invoiceId);
+                    } catch (error) {
+                        document.getElementById('payer-error-message').textContent = error.message;
+                    } finally {
+                        setLoading('payer', false);
+                    }
+                };
             } catch (error) {
-                console.error("Webhook failed:", error);
+                document.getElementById('unlock-view').innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์ไม่ถูกต้อง</div>`;
             }
         }
-
-        // --- Initial Load ---
-        window.addEventListener('hashchange', router);
-        window.addEventListener('load', router);
     </script>
 </body>
 </html>
