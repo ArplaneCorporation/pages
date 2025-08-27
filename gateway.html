@@ -97,8 +97,12 @@
                     <input type="text" id="unlock-link-output" class="form-input bg-gray-100" readonly>
                 </div>
                 <div>
-                    <label class="form-label">2. ลิงก์สำหรับแอดมิน (2FA):</label>
-                    <input type="text" id="admin-link-output" class="form-input bg-gray-100" readonly>
+                    <label class="form-label">2. ลิงก์ปลดล็อก (สำหรับคนที่จะกรอกรหัส):</label>
+                    <input type="text" id="admin-unlock-link-output" class="form-input bg-gray-100" readonly>
+                </div>
+                 <div>
+                    <label class="form-label">3. ลิงก์สร้างรหัส (สำหรับแอดมินเท่านั้น):</label>
+                    <input type="text" id="admin-generator-link-output" class="form-input bg-gray-100" readonly>
                 </div>
             </div>
         </div>
@@ -109,76 +113,51 @@
     <!-- =================================================================== -->
     <div id="unlock-view" class="hidden-view">
         <div class="card">
-            <!-- Step 1: Payer Info Form -->
-            <div id="payer-form-container">
-                <header class="text-center mb-6">
-                    <h1 class="text-3xl font-bold text-gray-900">ปลดล็อกเนื้อหา</h1>
-                    <p class="mt-2 text-gray-600">ชำระเงินเพื่อเข้าถึงเนื้อหาพิเศษ</p>
-                </header>
-                <div class="bg-indigo-50 rounded-lg p-4 mb-6 text-center">
-                    <p class="text-sm text-indigo-700">ยอดที่ต้องชำระ</p>
-                    <p id="payer-amount" class="text-4xl font-bold text-indigo-900"></p>
-                    <p class="text-sm text-gray-600 mt-2">สำหรับ:</p>
-                    <p id="payer-items" class="text-sm text-gray-800 font-medium"></p>
-                </div>
-                <form id="payer-form" class="space-y-6">
-                    <div>
-                        <label for="payer-info" class="form-label">อีเมลของคุณ (สำหรับรับใบแจ้งหนี้)</label>
-                        <input type="email" id="payer-info" class="form-input" placeholder="customer@example.com" required>
-                    </div>
-                    <button type="submit" id="payer-submit-btn" class="btn btn-success">
-                        <span id="payer-btn-text">ดำเนินการต่อ</span>
-                        <div id="payer-spinner" class="spinner hidden"></div>
-                    </button>
-                    <div id="payer-error-message" class="text-sm text-center text-red-600 h-5"></div>
-                </form>
-            </div>
-            <!-- Step 2: Waiting for Payment -->
-            <div id="waiting-container" class="hidden-view text-center">
-                <div class="spinner-dark mx-auto"></div>
-                <h1 class="mt-6 text-2xl font-bold text-gray-900">กำลังรอการชำระเงิน...</h1>
-                <p class="mt-2 text-gray-600">ระบบได้ส่งใบแจ้งหนี้ไปที่ <strong id="waiting-payer-info"></strong> แล้ว</p>
-                <p class="mt-1 text-gray-600">กรุณาชำระเงิน จากนั้นหน้านี้จะปลดล็อกเนื้อหาให้โดยอัตโนมัติ</p>
-                <div class="mt-4 text-xs text-gray-400">หน้านี้กำลังตรวจสอบสถานะทุก 10 วินาที</div>
-            </div>
-            <!-- Step 3: Content Unlocked -->
-            <div id="unlocked-container" class="hidden-view text-center">
-                 <svg class="mx-auto h-16 w-16 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h1 class="mt-4 text-3xl font-bold text-gray-900">ปลดล็อกสำเร็จ!</h1>
-                <p class="mt-2 text-gray-600">นี่คือเนื้อหาของคุณ:</p>
-                <div id="unlocked-content" class="mt-4 p-4 bg-slate-100 rounded-lg text-left text-gray-800 whitespace-pre-wrap break-words"></div>
-            </div>
+            <!-- Content gets injected here -->
         </div>
     </div>
 
     <!-- =================================================================== -->
     <!-- View 3: Admin 2FA Unlock Page                                   -->
     <!-- =================================================================== -->
-    <div id="admin-view" class="hidden-view">
+    <div id="admin-unlock-view" class="hidden-view">
         <div class="card">
              <header class="text-center mb-6">
                 <h1 class="text-3xl font-bold text-gray-900">ปลดล็อกสำหรับแอดมิน</h1>
-                <p class="mt-2 text-gray-600">กรอกรหัส 2FA จากแอปฯ Authenticator</p>
+                <p class="mt-2 text-gray-600">กรอกรหัส 6 หลักที่ได้รับมา</p>
             </header>
-            <form id="admin-form" class="space-y-4">
+            <form id="admin-unlock-form" class="space-y-4">
                 <div>
                     <label for="admin-otp" class="form-label">รหัสผ่าน 6 หลัก</label>
                     <input type="text" id="admin-otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" class="form-input text-center text-2xl tracking-[1em]" required>
                 </div>
-                <div class="pt-2">
+                <button type="submit" id="admin-unlock-submit-btn" class="btn btn-primary">
+                    <span id="admin-unlock-btn-text">ปลดล็อก</span>
+                    <div id="admin-unlock-spinner" class="spinner hidden"></div>
+                </button>
+                 <div id="admin-unlock-error-message" class="text-sm text-center text-red-600 h-5"></div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- =================================================================== -->
+    <!-- View 4: Admin Code Generator Page                               -->
+    <!-- =================================================================== -->
+    <div id="admin-generator-view" class="hidden-view">
+        <div class="card">
+             <header class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-900">Admin Code Generator</h1>
+                <p class="mt-2 text-gray-600">ใช้รหัสนี้เพื่อปลดล็อกเนื้อหา</p>
+            </header>
+            <div class="text-center">
+                <p class="text-6xl font-mono font-bold text-indigo-600 tracking-widest" id="totp-display">------</p>
+                <div class="mt-4">
                     <div class="progress-bar">
                         <div id="countdown-bar" class="progress-bar-inner"></div>
                     </div>
                     <p id="countdown-text" class="text-center text-sm text-gray-500 mt-2"></p>
                 </div>
-                <button type="submit" id="admin-submit-btn" class="btn btn-primary">
-                    <span id="admin-btn-text">ปลดล็อก</span>
-                    <div id="admin-spinner" class="spinner hidden"></div>
-                </button>
-                 <div id="admin-error-message" class="text-sm text-center text-red-600 h-5"></div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -192,16 +171,17 @@
             if (pollingInterval) clearInterval(pollingInterval);
             if (countdownInterval) clearInterval(countdownInterval);
             const hash = window.location.hash;
-            document.getElementById('creator-view').style.display = 'none';
-            document.getElementById('unlock-view').style.display = 'none';
-            document.getElementById('admin-view').style.display = 'none';
+            document.querySelectorAll('.hidden-view').forEach(el => el.style.display = 'none');
 
             if (hash.startsWith('#unlock/')) {
                 document.getElementById('unlock-view').style.display = 'block';
                 initUnlockPage(hash);
-            } else if (hash.startsWith('#admin/')) {
-                document.getElementById('admin-view').style.display = 'block';
-                initAdminPage(hash);
+            } else if (hash.startsWith('#admin-unlock/')) {
+                document.getElementById('admin-unlock-view').style.display = 'block';
+                initAdminUnlockPage(hash);
+            } else if (hash.startsWith('#admin-generator/')) {
+                document.getElementById('admin-generator-view').style.display = 'block';
+                initAdminGeneratorPage(hash);
             } else {
                 document.getElementById('creator-view').style.display = 'block';
             }
@@ -228,9 +208,14 @@
                     if (data.amount && !data.apiKey) throw new Error("กรุณากรอก API Key หากมีการตั้งราคา");
 
                     const baseUrl = window.location.href.split('#')[0];
-                    const adminData = { content: data.content, secretKey: data.secretKey };
-                    const encodedAdminData = btoa(JSON.stringify(adminData));
-                    document.getElementById('admin-link-output').value = `${baseUrl}#admin/${encodedAdminData}`;
+                    
+                    const adminUnlockData = { content: data.content, secretKey: data.secretKey };
+                    const encodedAdminUnlockData = btoa(JSON.stringify(adminUnlockData));
+                    document.getElementById('admin-unlock-link-output').value = `${baseUrl}#admin-unlock/${encodedAdminUnlockData}`;
+
+                    const adminGeneratorData = { secretKey: data.secretKey };
+                    const encodedAdminGeneratorData = btoa(JSON.stringify(adminGeneratorData));
+                    document.getElementById('admin-generator-link-output').value = `${baseUrl}#admin-generator/${encodedAdminGeneratorData}`;
 
                     const paymentLinkSection = document.getElementById('payment-link-section');
                     if (data.amount && data.apiKey) {
@@ -259,18 +244,16 @@
             document.getElementById('creator-secret-key').value = result;
         });
 
-        // --- Unlock Page (Payment) Logic ---
-        function initUnlockPage(hash) { /* ... same as previous version ... */ }
-        
         // --- Admin 2FA Unlock Page Logic ---
-        async function initAdminPage(hash) {
+        async function initAdminUnlockPage(hash) {
+            const view = document.getElementById('admin-unlock-view');
             try {
                 const encodedData = hash.split('/')[1];
                 const data = JSON.parse(atob(encodedData));
                 const { content, secretKey } = data;
 
-                const adminForm = document.getElementById('admin-form');
-                const errorDiv = document.getElementById('admin-error-message');
+                const adminForm = document.getElementById('admin-unlock-form');
+                const errorDiv = document.getElementById('admin-unlock-error-message');
                 const otpInput = document.getElementById('admin-otp');
 
                 adminForm.onsubmit = async (e) => {
@@ -282,117 +265,106 @@
                     if (!isValid) {
                         errorDiv.textContent = "รหัสไม่ถูกต้อง กรุณาลองอีกครั้ง";
                     } else {
-                        const unlockView = document.getElementById('unlock-view');
-                        unlockView.innerHTML = document.getElementById('admin-view').innerHTML;
-                        document.getElementById('admin-view').style.display = 'none';
-                        unlockView.style.display = 'block';
-                        showUnlockedContent(data, unlockView);
+                        showUnlockedContent(data, document.getElementById('unlock-view'));
                     }
                 };
+            } catch (error) {
+                view.innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์แอดมินไม่ถูกต้อง</div>`;
+            }
+        }
 
+        // --- Admin Code Generator Page Logic ---
+        async function initAdminGeneratorPage(hash) {
+            const view = document.getElementById('admin-generator-view');
+            try {
+                const encodedData = hash.split('/')[1];
+                const data = JSON.parse(atob(encodedData));
+                const { secretKey } = data;
+
+                const totpDisplay = document.getElementById('totp-display');
                 const countdownBar = document.getElementById('countdown-bar');
                 const countdownText = document.getElementById('countdown-text');
+
+                const updateCode = async () => {
+                    const token = await generateTOTP(secretKey, Math.floor(Date.now() / 1000 / 30));
+                    totpDisplay.textContent = token;
+                };
+
                 countdownInterval = setInterval(() => {
                     const timeLeft = 30 - (Math.floor(Date.now() / 1000) % 30);
                     countdownText.textContent = `รหัสจะเปลี่ยนใน ${timeLeft} วินาที`;
                     countdownBar.style.width = `${(timeLeft / 30) * 100}%`;
+                    if (timeLeft === 30) {
+                        updateCode();
+                    }
                 }, 1000);
+                
+                updateCode();
 
             } catch (error) {
-                document.getElementById('admin-view').innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์แอดมินไม่ถูกต้อง หรือ Secret Key มีปัญหา</div>`;
+                view.innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์สร้างรหัสไม่ถูกต้อง</div>`;
             }
         }
 
         // --- Native TOTP Implementation ---
         async function verifyTOTP(token, secret) {
             try {
-                // Check current, previous, and next time windows
                 for (let i = -1; i <= 1; i++) {
                     const timeStep = Math.floor(Date.now() / 1000 / 30) + i;
                     const generatedToken = await generateTOTP(secret, timeStep);
-                    if (generatedToken === token) {
-                        return true;
-                    }
+                    if (generatedToken === token) return true;
                 }
                 return false;
-            } catch (e) {
-                console.error("TOTP verification error:", e);
-                return false;
-            }
+            } catch (e) { return false; }
         }
 
         async function generateTOTP(secret, timeStep) {
             const key = base32toBuf(secret);
             const timeStepBuf = new ArrayBuffer(8);
-            const timeStepView = new DataView(timeStepBuf);
-            // Time step must be a 64-bit integer, but JS handles 32-bit well.
-            // We write two 32-bit parts to simulate a 64-bit Big Endian integer.
-            timeStepView.setUint32(0, 0, false); // High 32 bits
-            timeStepView.setUint32(4, timeStep, false); // Low 32 bits
-
+            new DataView(timeStepBuf).setUint32(4, timeStep, false);
             const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
             const hmacResult = await crypto.subtle.sign('HMAC', cryptoKey, timeStepBuf);
-            
             const hmacBytes = new Uint8Array(hmacResult);
             const offset = hmacBytes[hmacBytes.length - 1] & 0x0f;
-            const dataView = new DataView(hmacBytes.buffer, offset, 4);
-            let truncatedHash = dataView.getUint32(0, false);
-            truncatedHash &= 0x7fffffff; // Clear the most significant bit
-            const otp = truncatedHash % 1000000;
-            return otp.toString().padStart(6, '0');
+            let truncatedHash = new DataView(hmacBytes.buffer, offset, 4).getUint32(0, false) & 0x7fffffff;
+            return (truncatedHash % 1000000).toString().padStart(6, '0');
         }
 
         function base32toBuf(base32) {
             const base32chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
             let bits = '';
-            let buffer = new Uint8Array(Math.ceil(base32.length * 5 / 8));
-            for (let i = 0; i < base32.length; i++) {
-                const charIndex = base32chars.indexOf(base32[i]);
-                if (charIndex === -1) throw new Error('Invalid base32 character');
-                bits += charIndex.toString(2).padStart(5, '0');
-            }
+            base32.split('').forEach(char => {
+                const charIndex = base32chars.indexOf(char);
+                if (charIndex !== -1) bits += charIndex.toString(2).padStart(5, '0');
+            });
+            const buffer = new Uint8Array(Math.floor(bits.length / 8));
             for (let i = 0; i < buffer.length; i++) {
-                const byteBits = bits.substring(i * 8, (i + 1) * 8);
-                buffer[i] = parseInt(byteBits, 2);
+                buffer[i] = parseInt(bits.substring(i * 8, (i + 1) * 8), 2);
             }
             return buffer;
         }
 
         // --- Shared & Unchanged Functions ---
-        function showUnlockedContent(data, viewContainer) { /* ... */ }
-        function createUnlockedContainer() { /* ... */ }
-        function setLoading(page, isLoading) { /* ... */ }
-        function initUnlockPage(hash) { /* ... */ }
-        async function createInvoice(data, payerInfo) { /* ... */ }
-        function startPolling(data, invoiceId) { /* ... */ }
-        async function sendPushNotification(data) { /* ... */ }
+        function showUnlockedContent(data, viewContainer) {
+            // This function now needs to handle multiple views
+            document.querySelectorAll('.hidden-view').forEach(el => el.style.display = 'none');
+            viewContainer.style.display = 'block';
 
-        // --- Initial Load ---
-        window.addEventListener('hashchange', router);
-        window.addEventListener('load', router);
-        
-        // --- Pasting unchanged functions for completeness ---
-        function showUnlockedContent(data, viewContainer = document.getElementById('unlock-view')) {
-            const unlockedContainer = viewContainer.querySelector('#unlocked-container') || createUnlockedContainer();
-            const unlockedContentDiv = unlockedContainer.querySelector('#unlocked-content');
-            const formContainer = viewContainer.querySelector('#payer-form-container') || viewContainer.querySelector('#admin-form');
-            const waitingContainer = viewContainer.querySelector('#waiting-container');
-            if(formContainer) formContainer.style.display = 'none';
-            if(waitingContainer) waitingContainer.style.display = 'none';
+            const unlockedHTML = `
+                <div class="card text-center">
+                    <svg class="mx-auto h-16 w-16 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <h1 class="mt-4 text-3xl font-bold text-gray-900">ปลดล็อกสำเร็จ!</h1>
+                    <p class="mt-2 text-gray-600">นี่คือเนื้อหาของคุณ:</p>
+                    <div class="unlocked-content-div mt-4 p-4 bg-slate-100 rounded-lg text-left text-gray-800 whitespace-pre-wrap break-words"></div>
+                </div>`;
+            viewContainer.innerHTML = unlockedHTML;
+            const contentDiv = viewContainer.querySelector('.unlocked-content-div');
+
             if (data.content.startsWith('http://') || data.content.startsWith('https://')) {
-                unlockedContentDiv.innerHTML = `ลิงก์ของคุณ: <a href="${data.content}" target="_blank" class="text-indigo-600 font-bold hover:underline">${data.content}</a>`;
+                contentDiv.innerHTML = `ลิงก์ของคุณ: <a href="${data.content}" target="_blank" class="text-indigo-600 font-bold hover:underline">${data.content}</a>`;
             } else {
-                unlockedContentDiv.textContent = data.content;
+                contentDiv.textContent = data.content;
             }
-            unlockedContainer.style.display = 'block';
-            viewContainer.appendChild(unlockedContainer);
-        }
-        function createUnlockedContainer() {
-            const container = document.createElement('div');
-            container.id = 'unlocked-container';
-            container.className = 'text-center';
-            container.innerHTML = `<svg class="mx-auto h-16 w-16 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><h1 class="mt-4 text-3xl font-bold text-gray-900">ปลดล็อกสำเร็จ!</h1><p class="mt-2 text-gray-600">นี่คือเนื้อหาของคุณ:</p><div id="unlocked-content" class="mt-4 p-4 bg-slate-100 rounded-lg text-left text-gray-800 whitespace-pre-wrap break-words"></div>`;
-            return container;
         }
         function setLoading(page, isLoading) {
             const btn = document.getElementById(`${page}-submit-btn`);
@@ -404,6 +376,16 @@
                 spinner.classList.toggle('hidden', !isLoading);
             }
         }
+        async function createInvoice(data, payerInfo) { /* ... */ }
+        function startPolling(data, invoiceId) { /* ... */ }
+        async function sendPushNotification(data) { /* ... */ }
+        function initUnlockPage(hash) { /* ... */ }
+
+        // --- Initial Load ---
+        window.addEventListener('hashchange', router);
+        window.addEventListener('load', router);
+        
+        // --- Pasting unchanged functions for completeness ---
         async function createInvoice(data, payerInfo) {
             const itemsArray = data.items.split(',').map(item => item.trim());
             const dueDate = new Date();
@@ -437,9 +419,19 @@
             } catch (error) { console.error("Webhook failed:", error); }
         }
         function initUnlockPage(hash) {
+            const view = document.getElementById('unlock-view');
             try {
                 const encodedData = hash.split('/')[1];
                 const data = JSON.parse(atob(encodedData));
+                const paymentHTML = `
+                    <div id="payer-form-container">
+                        <header class="text-center mb-6"><h1 class="text-3xl font-bold text-gray-900">ปลดล็อกเนื้อหา</h1><p class="mt-2 text-gray-600">ชำระเงินเพื่อเข้าถึงเนื้อหาพิเศษ</p></header>
+                        <div class="bg-indigo-50 rounded-lg p-4 mb-6 text-center"><p class="text-sm text-indigo-700">ยอดที่ต้องชำระ</p><p id="payer-amount" class="text-4xl font-bold text-indigo-900"></p><p class="text-sm text-gray-600 mt-2">สำหรับ:</p><p id="payer-items" class="text-sm text-gray-800 font-medium"></p></div>
+                        <form id="payer-form" class="space-y-6"><div><label for="payer-info" class="form-label">อีเมลของคุณ (สำหรับรับใบแจ้งหนี้)</label><input type="email" id="payer-info" class="form-input" placeholder="customer@example.com" required></div><button type="submit" id="payer-submit-btn" class="btn btn-success"><span id="payer-btn-text">ดำเนินการต่อ</span><div id="payer-spinner" class="spinner hidden"></div></button><div id="payer-error-message" class="text-sm text-center text-red-600 h-5"></div></form>
+                    </div>
+                    <div id="waiting-container" class="hidden-view text-center"><div class="spinner-dark mx-auto"></div><h1 class="mt-6 text-2xl font-bold text-gray-900">กำลังรอการชำระเงิน...</h1><p class="mt-2 text-gray-600">ระบบได้ส่งใบแจ้งหนี้ไปที่ <strong id="waiting-payer-info"></strong> แล้ว</p><p class="mt-1 text-gray-600">กรุณาชำระเงิน จากนั้นหน้านี้จะปลดล็อกเนื้อหาให้โดยอัตโนมัติ</p><div class="mt-4 text-xs text-gray-400">หน้านี้กำลังตรวจสอบสถานะทุก 10 วินาที</div></div>`;
+                view.querySelector('.card').innerHTML = paymentHTML;
+
                 document.getElementById('payer-amount').textContent = `฿${parseFloat(data.amount).toFixed(2)}`;
                 document.getElementById('payer-items').textContent = data.items;
                 const payerForm = document.getElementById('payer-form');
@@ -460,7 +452,7 @@
                     }
                 };
             } catch (error) {
-                document.getElementById('unlock-view').innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์ไม่ถูกต้อง</div>`;
+                view.innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์ไม่ถูกต้อง</div>`;
             }
         }
     </script>
