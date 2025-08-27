@@ -75,7 +75,6 @@
                     <span id="creator-btn-text">สร้างลิงก์</span>
                     <div id="creator-spinner" class="spinner hidden"></div>
                 </button>
-                <!-- FIX: Added dedicated error message display -->
                 <div id="creator-error-message" class="text-sm text-center text-red-600 h-5"></div>
             </form>
             <div id="creator-results" class="mt-6 space-y-4 hidden">
@@ -116,6 +115,7 @@
                     <span id="payer-btn-text">ดำเนินการต่อเพื่อชำระเงิน</span>
                     <div id="payer-spinner" class="spinner hidden"></div>
                 </button>
+                 <div id="payer-error-message" class="text-sm text-center text-red-600 h-5"></div>
             </form>
         </div>
     </div>
@@ -174,41 +174,31 @@
             e.preventDefault();
             const errorDiv = document.getElementById('creator-error-message');
             const resultsDiv = document.getElementById('creator-results');
-
-            // Reset state
             errorDiv.textContent = '';
             resultsDiv.classList.add('hidden');
             setLoading('creator', true);
             
-            // Use a short timeout to allow the UI to update to the loading state
             setTimeout(() => {
                 try {
                     const apiKey = document.getElementById('creator-api-key').value;
                     const amount = document.getElementById('creator-amount').value;
                     const items = document.getElementById('creator-items').value;
-                    
-                    if (!apiKey || !amount || !items) {
-                        throw new Error("กรุณากรอกข้อมูลให้ครบทุกช่อง");
-                    }
-
+                    if (!apiKey || !amount || !items) throw new Error("กรุณากรอกข้อมูลให้ครบทุกช่อง");
                     const paymentData = { amount: amount, items: items, apiKey: apiKey };
                     const encodedPaymentData = btoa(JSON.stringify(paymentData));
                     const encodedStatusData = btoa(JSON.stringify({ apiKey: apiKey }));
-
                     const baseUrl = window.location.href.split('#')[0];
                     const paymentLink = `${baseUrl}#pay/${encodedPaymentData}`;
                     const statusLink = `${baseUrl}#status/${encodedStatusData}`;
-
                     document.getElementById('payment-link-output').value = paymentLink;
                     document.getElementById('status-link-output').value = statusLink;
                     resultsDiv.classList.remove('hidden');
-
                 } catch (error) {
                     errorDiv.textContent = error.message;
                 } finally {
                     setLoading('creator', false);
                 }
-            }, 100); // 100ms delay
+            }, 100);
         });
 
         // --- Gemini API Feature Logic (Item Suggestion) ---
@@ -250,17 +240,44 @@
                 document.getElementById('payer-amount').textContent = `฿${parseFloat(data.amount).toFixed(2)}`;
                 document.getElementById('payer-items').textContent = data.items;
                 const payerForm = document.getElementById('payer-form');
-                payerForm.onsubmit = (e) => {
+                const errorDiv = document.getElementById('payer-error-message');
+
+                // *** REDIRECT FIX IS HERE ***
+                payerForm.onsubmit = async (e) => {
                     e.preventDefault();
-                    const payerInfo = document.getElementById('payer-info').value;
+                    errorDiv.textContent = '';
                     setLoading('payer', true);
-                    const itemsArray = data.items.split(',').map(item => item.trim());
-                    const dueDate = new Date();
-                    dueDate.setDate(dueDate.getDate() + 1);
-                    const formattedDueDate = dueDate.toISOString().split('T')[0];
-                    const params = new URLSearchParams({ action: 'createInvoice', apiKey: data.apiKey, customer: payerInfo, amount: data.amount, items: JSON.stringify(itemsArray), dueDate: formattedDueDate });
-                    const finalUrl = `${PROBANKING_BASE_URL}?${params.toString()}`;
-                    setTimeout(() => { window.location.href = finalUrl; }, 1000);
+
+                    try {
+                        const payerInfo = document.getElementById('payer-info').value;
+                        if (!payerInfo) throw new Error("กรุณากรอกอีเมลหรือเลขบัญชี");
+
+                        // Step 1: Create Invoice in the background
+                        const itemsArray = data.items.split(',').map(item => item.trim());
+                        const dueDate = new Date();
+                        dueDate.setDate(dueDate.getDate() + 1);
+                        const formattedDueDate = dueDate.toISOString().split('T')[0];
+                        const createInvoiceParams = new URLSearchParams({
+                            action: 'createInvoice', apiKey: data.apiKey, customer: payerInfo,
+                            amount: data.amount, items: JSON.stringify(itemsArray), dueDate: formattedDueDate
+                        });
+                        
+                        // We fetch this but don't need the response, just to ensure it's created
+                        await fetch(`${PROBANKING_BASE_URL}?${createInvoiceParams.toString()}`);
+
+                        // Step 2: Construct the user-facing QR code URL
+                        const generateQrParams = new URLSearchParams({
+                            action: 'generateQR', apiKey: data.apiKey, amount: data.amount
+                        });
+                        const finalUrl = `${PROBANKING_BASE_URL}?${generateQrParams.toString()}`;
+
+                        // Step 3: Redirect the user to the QR code page
+                        window.location.href = finalUrl;
+
+                    } catch (error) {
+                        errorDiv.textContent = error.message;
+                        setLoading('payer', false);
+                    }
                 };
             } catch (error) {
                 document.getElementById('payer-view').innerHTML = `<div class="card text-center text-red-600"><strong>เกิดข้อผิดพลาด:</strong> ลิงก์ชำระเงินไม่ถูกต้อง</div>`;
